@@ -1,0 +1,515 @@
+import json
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import get_user_model
+from django.db import transaction
+from django.db.models import Count, Q
+from django.utils import timezone
+from .models import Order, OrderItem, DeliveryBatch
+from menu.models import FoodItem
+
+User = get_user_model()
+
+def broadcast_admin_update(event_type, data=None):
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        "admin_updates",
+        {
+            "type": "admin_update",
+            "data": {"event": event_type, "payload": data}
+        }
+    )
+
+def broadcast_rider_event(event_type, data):
+    """Broadcast an event to ALL online riders across the entire system."""
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        "all_riders",
+        {
+            "type": "rider_order_event",
+            "data": {"event": event_type, "payload": data}
+        }
+    )
+
+# SMART BATCHING ENGINE
+def create_batch(order):
+    """
+    Automatically group ready orders into a Super Order (Batch).
+    Grouping criteria: Area and Proximity.
+    """
+    with transaction.atomic():
+        # Look for an existing 'available' batch in the same area
+        batch = DeliveryBatch.objects.filter(
+            status='available',
+            orders__area=order.area
+        ).distinct().first()
+
+        if not batch:
+            # Create a new Super Order
+            batch = DeliveryBatch.objects.create(
+                status='available',
+                total_payout=0,
+                estimated_time=25 # Base estimate
+            )
+        
+        # Add order to batch
+        order.batch = batch
+        # Calculate stop number
+        current_stops = batch.orders.count()
+        order.stop_number = current_stops + 1
+        order.save()
+        
+        # Recalculate batch totals
+        total_payout = sum(o.total_price for o in batch.orders.all())
+        batch.total_payout = total_payout
+        # Add time per stop
+        batch.estimated_time = 25 + (batch.orders.count() * 10)
+        batch.save()
+
+    # Notify riders about the updated/new Super Order
+    broadcast_rider_event("NEW_BATCH", {
+        "batch_id": batch.id,
+        "area": order.area,
+        "stops": batch.orders.count(),
+        "total_payout": str(batch.total_payout),
+        "estimated_time": batch.estimated_time
+    })
+    return batch
+
+# AUTO ASSIGN RIDER (kept for manual/fallback use only)
+def auto_assign_rider(order):
+    eligible_riders = User.objects.filter(
+        user_type='rider',
+        is_available=True,
+        current_area=order.area
+    ).annotate(
+        active_orders=Count('deliveries', filter=Q(deliveries__status__in=['assigned', 'on_the_way']))
+    ).filter(
+        active_orders__lt=3
+    ).order_by('active_orders', 'last_assigned_at')
+
+    rider = eligible_riders.first()
+
+    if rider:
+        order.rider = rider
+        order.status = 'assigned'
+        order.assigned_at = timezone.now()
+        order.save()
+        rider.last_assigned_at = timezone.now()
+        rider.save()
+
+
+# PLACE ORDER
+@login_required
+@csrf_exempt
+def place_order(request):
+    if not request.user.is_customer():
+        return JsonResponse({"error": "Only customers allowed"}, status=403)
+
+    data = json.loads(request.body)
+
+    order = Order.objects.create(
+        customer=request.user,
+        address=data['address'],
+        area=data['area'],
+        total_price=data['total_price']
+    )
+
+    items = data.get('items', [])
+    for item in items:
+        food = FoodItem.objects.get(id=item['food_id'])
+        OrderItem.objects.create(order=order, food=food, quantity=item.get('qty', 1))
+
+    # Order starts as 'new' — admin must confirm it before riders can see/accept it
+    # No auto-assignment or rider selection at this stage anymore
+    broadcast_admin_update("ORDER_PLACED", {"order_id": order.id})
+    return JsonResponse({"message": "Order placed", "order_id": order.id})
+
+
+# GET AVAILABLE RIDERS
+@login_required
+def get_available_riders(request):
+    if not request.user.is_customer():
+        return JsonResponse({"error": "Only customers allowed"}, status=403)
+
+    area = request.GET.get('area')
+
+    riders = User.objects.filter(
+        user_type='rider',
+        is_available=True,
+        current_area=area
+    ).annotate(
+        active_orders=Count('deliveries', filter=Q(deliveries__status__in=['assigned', 'on_the_way']))
+    ).filter(
+        active_orders__lt=3
+    )
+
+    data = [
+        {"id": r.id, "username": r.username, "active_load": r.active_orders}
+        for r in riders
+    ]
+
+    return JsonResponse({"riders": data})
+
+
+# RIDER ACCEPTS ORDER (Classic Single-Order Flow)
+@login_required
+@csrf_exempt
+def accept_order(request, order_id):
+    if not request.user.is_rider():
+        return JsonResponse({"error": "Only riders allowed"}, status=403)
+
+    active_count = Order.objects.filter(
+        rider=request.user, 
+        status__in=['assigned', 'on_the_way']
+    ).count()
+
+    if active_count >= 3:
+        return JsonResponse({"error": "You already have the maximum of 3 active orders"}, status=400)
+
+    with transaction.atomic():
+        # Riders can ONLY accept 'ready' orders
+        order = Order.objects.select_for_update(skip_locked=True).filter(
+            id=order_id, status='ready'
+        ).first()
+
+        if not order:
+            return JsonResponse({"error": "Order no longer available or not yet ready"}, status=409)
+
+        order.rider = request.user
+        order.status = 'assigned'
+        order.assigned_at = timezone.now()
+        order.save()
+
+        request.user.last_assigned_at = timezone.now()
+        request.user.save()
+
+    broadcast_admin_update("ORDER_ACCEPTED", {"order_id": order.id, "rider": request.user.username})
+    broadcast_rider_event("ORDER_TAKEN", {"order_id": order.id})
+    return JsonResponse({"message": "Order accepted"})
+
+# RIDER ACCEPTS BATCH (SUPER ORDER)
+@login_required
+@csrf_exempt
+def accept_batch(request, batch_id):
+    if not request.user.is_rider():
+        return JsonResponse({"error": "Only riders allowed"}, status=403)
+
+    with transaction.atomic():
+        batch = DeliveryBatch.objects.select_for_update().filter(id=batch_id, status='available').first()
+        if not batch:
+            return JsonResponse({"error": "Batch no longer available"}, status=409)
+
+        batch.rider = request.user
+        batch.status = 'accepted'
+        batch.accepted_at = timezone.now()
+        batch.save()
+
+        # Update all orders in the batch
+        for order in batch.orders.all():
+            order.rider = request.user
+            order.status = 'assigned'
+            order.assigned_at = timezone.now()
+            order.save()
+
+    broadcast_rider_event("BATCH_TAKEN", {"batch_id": batch.id})
+    return JsonResponse({"message": "Batch accepted", "batch_id": batch.id})
+
+# GET AVAILABLE BATCHES
+@login_required
+def get_available_batches(request):
+    if not request.user.is_rider():
+        return JsonResponse({"error": "Only riders allowed"}, status=403)
+    
+    batches = DeliveryBatch.objects.filter(status='available').prefetch_related('orders').order_by('-created_at')
+    data = []
+    for b in batches:
+        data.append({
+            "id": b.id,
+            "stops_count": b.orders.count(),
+            "area": b.orders.first().area if b.orders.exists() else "Unknown",
+            "total_payout": str(b.total_payout),
+            "estimated_time": b.estimated_time,
+        })
+    return JsonResponse({"batches": data})
+
+# GET BATCH DETAILS
+@login_required
+def get_batch_details(request, batch_id):
+    try:
+        batch = DeliveryBatch.objects.prefetch_related('orders__items__food').get(id=batch_id)
+        stops = []
+        for o in batch.orders.all().order_by('stop_number'):
+            stops.append({
+                "id": o.id,
+                "customer": o.customer.username,
+                "address": o.address,
+                "status": o.status,
+                "stop_number": o.stop_number,
+                "items": [{"name": i.food.name, "qty": i.quantity} for i in o.items.all()]
+            })
+        
+        return JsonResponse({
+            "id": batch.id,
+            "status": batch.status,
+            "total_payout": str(batch.total_payout),
+            "estimated_time": batch.estimated_time,
+            "stops": stops
+        })
+    except DeliveryBatch.DoesNotExist:
+        return JsonResponse({"error": "Batch not found"}, status=404)
+
+
+# CONFIRM A SPECIFIC STOP IN A BATCH
+@login_required
+@csrf_exempt
+def confirm_batch_stop(request, batch_id, order_id):
+    if not request.user.is_rider():
+        return JsonResponse({"error": "Only riders allowed"}, status=403)
+
+    try:
+        batch = DeliveryBatch.objects.get(id=batch_id, rider=request.user)
+        order = Order.objects.get(id=order_id, batch=batch)
+
+        if order.status == 'delivered':
+             return JsonResponse({"message": "Order already delivered"})
+
+        with transaction.atomic():
+            order.status = 'delivered'
+            order.delivered_at = timezone.now()
+            order.save()
+
+            # Check if all orders in batch are delivered
+            delivered_count = batch.orders.filter(status='delivered').count()
+            total_count = batch.orders.count()
+
+            if delivered_count == total_count:
+                batch.status = 'completed'
+                batch.completed_at = timezone.now()
+                batch.save()
+            elif batch.status != 'in_progress':
+                # First delivery marks batch as 'in_progress'
+                batch.status = 'in_progress'
+                batch.save()
+
+        # Notify admin and customer
+        broadcast_admin_update("ORDER_STATUS_UPDATED", {"order_id": order.id, "status": "delivered"})
+        return JsonResponse({
+            "message": "Stop confirmed!",
+            "all_done": batch.status == 'completed',
+            "stops_remaining": total_count - delivered_count
+        })
+
+    except (DeliveryBatch.DoesNotExist, Order.DoesNotExist):
+        return JsonResponse({"error": "Batch or Order not found"}, status=404)
+
+# RIDER STARTS TRIP (Self-confirm pickup at restaurant)
+@login_required
+@csrf_exempt
+def start_batch_trip(request, batch_id):
+    """Rider confirms they have picked up ALL orders from the restaurant.
+    Transitions every 'assigned' order in the batch to 'on_the_way'."""
+    if not request.user.is_rider():
+        return JsonResponse({"error": "Only riders allowed"}, status=403)
+
+    try:
+        with transaction.atomic():
+            batch = DeliveryBatch.objects.select_for_update().get(
+                id=batch_id, rider=request.user
+            )
+
+            if batch.status not in ('accepted', 'in_progress'):
+                return JsonResponse(
+                    {"error": f"Batch status '{batch.status}' cannot be started."},
+                    status=400
+                )
+
+            updated = 0
+            for order in batch.orders.filter(status='assigned'):
+                order.status = 'on_the_way'
+                order.picked_up_at = timezone.now()
+                order.save()
+                updated += 1
+
+            if batch.status != 'in_progress':
+                batch.status = 'in_progress'
+                batch.save()
+
+        broadcast_admin_update("ORDER_STATUS_UPDATED", {
+            "batch_id": batch.id,
+            "status": "on_the_way",
+            "orders_updated": updated
+        })
+        broadcast_rider_event("ORDER_STATUS_UPDATED", {
+            "batch_id": batch.id,
+            "status": "on_the_way"
+        })
+
+        return JsonResponse({
+            "message": f"Trip started! {updated} order(s) now on the way.",
+            "orders_updated": updated
+        })
+
+    except DeliveryBatch.DoesNotExist:
+        return JsonResponse({"error": "Batch not found"}, status=404)
+
+
+# UPDATE STATUS
+@login_required
+@csrf_exempt
+def update_status(request, order_id):
+    if not request.user.is_rider():
+        return JsonResponse({"error": "Only riders allowed"}, status=403)
+
+    data = json.loads(request.body)
+
+    order = Order.objects.get(id=order_id, rider=request.user)
+    new_status = data['status']
+
+    # Validate legal transitions for riders
+    valid_transitions = {
+        'ready':      'on_the_way',
+        'assigned':   'on_the_way',  # fallback if rider accepted before ready
+        'on_the_way': 'delivered',
+    }
+    if valid_transitions.get(order.status) != new_status:
+        return JsonResponse({"error": f"Cannot transition from '{order.status}' to '{new_status}'"}, status=400)
+
+    order.status = new_status
+    
+    if new_status == 'on_the_way' and not order.picked_up_at:
+        order.picked_up_at = timezone.now()
+    elif new_status == 'delivered' and not order.delivered_at:
+        order.delivered_at = timezone.now()
+        
+    order.save()
+
+    broadcast_admin_update("ORDER_STATUS_UPDATED", {"order_id": order.id, "status": order.status})
+    return JsonResponse({"message": "Status updated"})
+
+
+@login_required
+def assigned_orders(request):
+    if not request.user.is_rider():
+        return JsonResponse({"error": "Only riders allowed"}, status=403)
+
+    orders = Order.objects.filter(rider=request.user).select_related('customer').prefetch_related('items__food').order_by('-created_at')
+    data = [
+        {
+            'id': order.id,
+            'status': order.status,
+            'address': order.address,
+            'area': order.area,
+            'total': str(order.total_price),
+            'batch_id': order.batch_id,
+            'stop_number': order.stop_number,
+            'customer': order.customer.username,
+            'items': [
+                {
+                    'food': item.food.name,
+                    'qty': item.quantity,
+                    'price': str(item.get_price())
+                }
+                for item in order.items.all()
+            ]
+        }
+        for order in orders
+    ]
+
+    return JsonResponse({'orders': data})
+
+
+@login_required
+def pending_orders(request):
+    if not request.user.is_rider():
+        return JsonResponse({"error": "Only riders allowed"}, status=403)
+
+    # Riders now see ALL ready orders in the entire system (Global Feed)
+    orders = Order.objects.filter(
+        status='ready', 
+        rider__isnull=True
+    ).select_related('customer').prefetch_related('items__food').order_by('-created_at')
+    
+    data = [
+        {
+            'id': order.id,
+            'address': order.address,
+            'area': order.area,
+            'total': str(order.total_price),
+            'items': [
+                {
+                    'food': item.food.name,
+                    'qty': item.quantity,
+                    'price': str(item.get_price())
+                }
+                for item in order.items.all()
+            ]
+        }
+        for order in orders
+    ]
+
+    return JsonResponse({'orders': data})
+
+
+
+@login_required
+def track_order(request, order_id):
+    order = Order.objects.select_related('rider', 'batch').prefetch_related('items__food').get(id=order_id, customer=request.user)
+
+    items = [
+        {
+            "food": i.food.name,
+            "qty": i.quantity,
+            "price": str(i.get_price())
+        }
+        for i in order.items.all()
+    ]
+
+    batch_info = None
+    if order.batch:
+        # Calculate how many stops are ahead of this order
+        stops_ahead = order.batch.orders.filter(
+            status__in=['ready', 'assigned', 'on_the_way'],
+            stop_number__lt=order.stop_number
+        ).count()
+        
+        batch_info = {
+            "batch_id": order.batch.id,
+            "stops_ahead": stops_ahead,
+            "is_batched": True,
+            "estimated_wait": stops_ahead * 15 # Simple heuristic: 15 mins per stop
+        }
+
+    return JsonResponse({
+        "status": order.status,
+        "rider": order.rider.username if order.rider else None,
+        "total": str(order.total_price),
+        "items": items,
+        "batch_info": batch_info
+    })
+
+@login_required
+def get_history(request):
+    if request.user.is_rider():
+        orders = Order.objects.filter(rider=request.user, status='delivered').prefetch_related('items__food').order_by('-delivered_at')
+    else:
+        orders = Order.objects.filter(customer=request.user).exclude(status='new').prefetch_related('items__food').order_by('-created_at')
+
+    data = [
+        {
+            'id': order.id,
+            'status': order.status.replace('_', ' ').title(),
+            'address': order.address,
+            'total': str(order.total_price),
+            'date': (order.delivered_at or order.created_at).strftime('%H:%M • %b %d, %Y'),
+            'items': [
+                {'name': i.food.name, 'qty': i.quantity}
+                for i in order.items.all()
+            ]
+        }
+        for order in orders
+    ]
+    return JsonResponse({'orders': data})
