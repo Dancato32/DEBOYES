@@ -31,7 +31,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-default-change-me')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
+ALLOWED_HOSTS = [h.strip('/') for h in os.environ.get('ALLOWED_HOSTS', '*').split(',')]
 
 AUTH_USER_MODEL = 'users.User'
 # Application definition
@@ -160,11 +160,11 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # CORS Settings
-CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:5173').split(',')
+CORS_ALLOWED_ORIGINS = [o.strip('/') for o in os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:5173').split(',')]
 CORS_ALLOW_CREDENTIALS = True
 
 # CSRF Settings
-CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173').split(',')
+CSRF_TRUSTED_ORIGINS = [o.strip('/') for o in os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173').split(',')]
 
 # Production Security Headers
 if not DEBUG:
