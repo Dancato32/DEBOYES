@@ -8,7 +8,11 @@ services:
       - key: PYTHON_VERSION
         value: 3.11.9
       - key: DJANGO_SETTINGS_MODULE
-        value: backend.mysite.settings
+        value: mysite.settings
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://frontend-production-b947.up.railway.app
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://frontend-production-b947.up.railway.app
       - key: DEBUG
         value: "False"
       - fromGroup: deboyes-common
