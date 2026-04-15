@@ -32,7 +32,7 @@ export default function AdminCustomersPage() {
     <div className="space-y-10 py-6">
       <header className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold font-playfair text-brand-deep-dark tracking-tight">Customers</h1>
+          <h1 className="text-2xl font-bold font-poppins text-brand-deep-dark tracking-tight uppercase">Customers</h1>
           <p className="mt-2 text-brand-charcoal font-medium">Manage your active customer base</p>
         </div>
         <div className="relative w-full max-w-sm">
@@ -57,7 +57,7 @@ export default function AdminCustomersPage() {
                 {c.initials}
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-bold font-playfair text-brand-deep-dark">{c.username}</h3>
+                <h3 className="text-lg font-bold font-poppins text-brand-deep-dark tracking-tight">{c.username}</h3>
                 <p className="text-xs text-brand-charcoal break-all">{c.email}</p>
               </div>
             </div>
@@ -68,7 +68,7 @@ export default function AdminCustomersPage() {
               </div>
               <div className="text-right">
                 <p className="text-[10px] font-bold text-brand-charcoal/60 uppercase tracking-widest">Orders</p>
-                <p className="mt-1 text-sm font-black text-brand-gold">{c.order_count}</p>
+                <p className="mt-1 text-sm font-black text-brand-red">{c.order_count}</p>
               </div>
             </div>
           </div>

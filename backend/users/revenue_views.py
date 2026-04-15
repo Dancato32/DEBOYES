@@ -14,6 +14,7 @@ def get_revenue_details(request):
         {
             "id": f"QB-{o.id}",
             "customer": o.customer.get_full_name() or o.customer.username,
+            "items": ", ".join([f"{item.food.name} × {item.quantity}" for item in o.items.all()]),
             "amount": str(o.total_price),
             "date": o.delivered_at.strftime('%Y-%m-%d'),
             "time": o.delivered_at.strftime('%H:%M:%S'),

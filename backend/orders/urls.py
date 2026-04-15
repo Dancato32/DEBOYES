@@ -12,7 +12,10 @@ from .views import (
     get_batch_details,
     accept_batch,
     confirm_batch_stop,
-    start_batch_trip
+    start_batch_trip,
+    get_order_messages,
+    send_order_message,
+    mark_messages_as_read
 )
 
 urlpatterns = [
@@ -21,6 +24,9 @@ urlpatterns = [
     path('accept/<int:order_id>/', accept_order),
     path('update/<int:order_id>/', update_status),
     path('track/<int:order_id>/', track_order),
+    path('<int:order_id>/messages/', get_order_messages),
+    path('<int:order_id>/messages/send/', send_order_message),
+    path('<int:order_id>/messages/read/', mark_messages_as_read),
     path('assigned/', assigned_orders),
     path('pending/', pending_orders),
     path('history/', get_history),

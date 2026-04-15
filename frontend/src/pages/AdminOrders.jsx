@@ -69,7 +69,7 @@ export default function AdminOrdersPage() {
     <div className="space-y-10 py-6">
       <header className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold font-playfair text-brand-deep-dark tracking-tight">Orders History</h1>
+          <h1 className="text-2xl font-bold font-poppins text-brand-deep-dark tracking-tight uppercase">Orders History</h1>
           <p className="mt-2 text-brand-charcoal font-medium">Total {orders.length} orders found</p>
         </div>
         <div className="flex gap-2 p-1 rounded-2xl bg-[#E8CCA6]/20 overflow-x-auto no-scrollbar ring-1 ring-[#E8CCA6]/40">
@@ -115,12 +115,12 @@ export default function AdminOrdersPage() {
                   </td>
                   <td className="py-5 text-sm font-semibold text-brand-deep-dark">{order.customer}</td>
                   <td className="py-5 text-sm text-brand-charcoal max-w-[300px] truncate">{order.items}</td>
-                  <td className="py-5 text-sm font-bold text-brand-gold">₵{order.total}</td>
+                  <td className="py-5 text-sm font-bold text-brand-red">₵{order.total}</td>
                   <td className="py-5 text-center">
                     <span className={`rounded-xl px-3 py-1 text-[10px] font-black uppercase tracking-widest ${
                       order.status === 'Delivered'   ? 'bg-brand-red/10 text-brand-red' : 
                       order.status === 'On The Way'  ? 'bg-blue-500/10 text-blue-600' :
-                      order.status === 'Ready'       ? 'bg-brand-gold/20 text-brand-dark-red' :
+                      order.status === 'Ready'       ? 'bg-brand-red/20 text-brand-dark-red' :
                       order.status === 'New'         ? 'bg-violet-500/10 text-violet-700' :
                       order.status === 'Pending'     ? 'bg-blue-500/10 text-blue-600' :
                       order.status === 'Assigned'    ? 'bg-amber-500/10 text-amber-700' :

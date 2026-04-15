@@ -16,6 +16,10 @@ class User(AbstractUser):
     last_assigned_at = models.DateTimeField(null=True, blank=True)
     rating = models.DecimalField(max_digits=3, decimal_places=1, default=5.0)
 
+    # Dynamic Batching
+    batch_open = models.BooleanField(default=False)
+    max_batch_size = models.PositiveIntegerField(default=3)
+
     def is_customer(self):
         return self.user_type == 'customer'
 

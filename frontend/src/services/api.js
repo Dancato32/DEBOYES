@@ -23,6 +23,9 @@ export const updateOrderStatus = (orderId, payload) => api.post(`orders/update/$
 export const fetchOrderDetails = (orderId) => api.get(`orders/track/${orderId}/`)
 export const fetchAssignedOrders = () => api.get('orders/assigned/')
 export const fetchPendingOrders = (area) => api.get('orders/pending/', { params: { area } })
+export const fetchOrderMessages = (orderId) => api.get(`orders/${orderId}/messages/`)
+export const sendOrderMessage = (orderId, payload) => api.post(`orders/${orderId}/messages/send/`, payload)
+export const markOrderMessagesRead = (orderId) => api.post(`orders/${orderId}/messages/read/`)
 
 // Super Orders / Batching
 export const fetchAvailableBatches = () => api.get('orders/batches/available/')

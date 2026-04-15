@@ -10,13 +10,14 @@ export default {
           'deep-dark': '#1A0A0B',
           'gold': '#F5B50A',
           'gold-light': '#FAD55A',
-          'cream': '#FDF6E3',
+          'cream': '#FFFBEB',
           'charcoal': '#2D1215',
         }
       },
       fontFamily: {
-        'dmsans': ['"DM Sans"', 'sans-serif'],
-        'playfair': ['"Playfair Display"', 'serif'],
+        'poppins': ['"Poppins"', 'sans-serif'],
+        'inter': ['"Inter"', 'sans-serif'],
+        'pacifico': ['"Pacifico"', 'cursive'],
       },
       boxShadow: {
         soft: '0 10px 30px rgba(15, 23, 42, 0.08)'

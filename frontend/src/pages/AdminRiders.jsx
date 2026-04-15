@@ -33,7 +33,7 @@ export default function AdminRidersPage() {
     <div className="space-y-10 py-6">
       <header className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold font-playfair text-brand-deep-dark tracking-tight">Riders Fleet</h1>
+          <h1 className="text-2xl font-bold font-poppins text-brand-deep-dark tracking-tight uppercase">Riders Fleet</h1>
           <p className="mt-2 text-brand-charcoal font-medium">{riders.filter(r => r.status === 'Online').length} riders currently online</p>
         </div>
         <div className="flex gap-4">
@@ -58,7 +58,7 @@ export default function AdminRidersPage() {
             </div>
             
             <div className="mt-6">
-              <h3 className="text-xl font-bold font-playfair text-brand-deep-dark tracking-tight">{r.username}</h3>
+              <h3 className="text-lg font-bold font-poppins text-brand-deep-dark tracking-tight">{r.username}</h3>
               <div className="mt-4 flex items-center gap-2 text-brand-charcoal">
                 <span className="text-lg">📍</span>
                 <span className="text-xs font-bold uppercase tracking-widest">{r.area || 'No Area Set'}</span>

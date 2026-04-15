@@ -169,7 +169,28 @@ export default function MapTracker({ position, destination, restaurant, darkMode
     if (destination?.lat) {
        updateRoute(position, destination, mapInstanceRef.current)
     }
-  }, [position?.lat, position?.lng])
+
+    // Centering/Fitting Logic
+    if (mapInstanceRef.current) {
+        const markers = [markerRef.current]
+        if (destMarkerRef.current) markers.push(destMarkerRef.current)
+        if (restMarkerRef.current) markers.push(restMarkerRef.current)
+        
+        const group = L.featureGroup(markers)
+        mapInstanceRef.current.fitBounds(group.getBounds().pad(0.3), { animate: true })
+    }
+  }, [position?.lat, position?.lng, destination?.lat, restaurant?.lat])
+
+  // React to Restaurant Prop changes
+  useEffect(() => {
+    if (!mapInstanceRef.current || !restaurant?.lat || !restaurant?.lng) return
+    
+    if (restMarkerRef.current) {
+      restMarkerRef.current.setLatLng([restaurant.lat, restaurant.lng])
+    } else {
+      restMarkerRef.current = L.marker([restaurant.lat, restaurant.lng], { icon: restaurantIcon }).addTo(mapInstanceRef.current)
+    }
+  }, [restaurant?.lat, restaurant?.lng])
 
   return (
     <div ref={mapRef} className="h-full w-full" />

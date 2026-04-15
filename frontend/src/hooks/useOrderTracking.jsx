@@ -4,6 +4,8 @@ export default function useOrderTracking(orderId) {
   const [position, setPosition] = useState({ lat: 5.6037, lng: -0.1870 })
   const socketRef = useRef(null)
   const [connected, setConnected] = useState(false)
+  const [incomingMessage, setIncomingMessage] = useState(null)
+  const [readEvent, setReadEvent] = useState(null)
   const [error, setError] = useState(null)
 
   useEffect(() => {
@@ -18,7 +20,14 @@ export default function useOrderTracking(orderId) {
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data)
-        setPosition({ lat: Number(data.lat), lng: Number(data.lng) })
+        if (data.type === 'chat_message') {
+          setIncomingMessage(data.message)
+        } else if (data.type === 'messages_read') {
+          setReadEvent(data)
+        } else {
+          // Default to location update if type missing or is location_update
+          setPosition({ lat: Number(data.lat), lng: Number(data.lng) })
+        }
       } catch (err) {
         console.error(err)
       }
@@ -40,5 +49,5 @@ export default function useOrderTracking(orderId) {
     }
   }
 
-  return { position, connected, error, sendLocation }
+  return { position, connected, incomingMessage, readEvent, error, sendLocation }
 }

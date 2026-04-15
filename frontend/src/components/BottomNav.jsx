@@ -59,7 +59,7 @@ export default function BottomNav() {
                 <div className={`${isActive ? 'opacity-100' : 'opacity-60'}`}>
                   {item.icon}
                 </div>
-                <span className="text-[10px] font-black uppercase tracking-[0.15em] mt-1 font-dmsans">{item.label}</span>
+                <span className="text-[9px] font-bold uppercase tracking-widest mt-1 font-inter">{item.label}</span>
               </div>
             </Link>
           )

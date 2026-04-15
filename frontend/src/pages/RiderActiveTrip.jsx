@@ -4,8 +4,10 @@ import { toast } from 'react-toastify'
 import { useNavigate } from 'react-router-dom'
 import BottomNav from '../components/BottomNav'
 import MapTracker from '../components/MapTracker'
+import ChatDialog from '../components/ChatDialog'
 import useRiderSocket from '../hooks/useRiderSocket'
 import useRiderLocation from '../hooks/useRiderLocation'
+import { AnimatePresence } from 'framer-motion'
 
 // Accra area coordinates for simulation — in production you'd use the device GPS
 const ACCRA_AREAS = {
@@ -47,6 +49,8 @@ export default function RiderActiveTrip() {
   const [stats, setStats] = useState({ earnings: 0, deliveries: 0 })
   const [confirming, setConfirming] = useState(false)
   const [riderPos, setRiderPos] = useState(null)
+  const [chatOrderId, setChatOrderId] = useState(null)
+  const [unreadMessages, setUnreadMessages] = useState({}) // {orderId: count}
 
   const loadData = async () => {
     try {
@@ -86,6 +90,14 @@ export default function RiderActiveTrip() {
   const { sendLocation } = useRiderSocket((data) => {
     if (data.event === 'ORDER_STATUS_UPDATED') {
       loadData()
+    } else if (data.event === 'NEW_CHAT_MESSAGE') {
+      const { order_id } = data.payload
+      if (chatOrderId !== order_id) {
+        setUnreadMessages(prev => ({
+          ...prev,
+          [order_id]: (prev[order_id] || 0) + 1
+        }))
+      }
     }
   }, !!activeBatch)
 
@@ -94,6 +106,12 @@ export default function RiderActiveTrip() {
     const interval = setInterval(loadData, 30000)
     return () => clearInterval(interval)
   }, [])
+
+  useEffect(() => {
+    if (chatOrderId) {
+      setUnreadMessages(prev => ({ ...prev, [chatOrderId]: 0 }))
+    }
+  }, [chatOrderId])
 
   // Broadcast location to customers
   useEffect(() => {
@@ -173,20 +191,20 @@ export default function RiderActiveTrip() {
   )
 
   if (!activeBatch) return (
-    <div className="min-h-screen bg-brand-cream text-slate-800 flex flex-col items-center justify-center p-10 space-y-8 font-dmsans">
+    <div className="min-h-screen bg-brand-cream text-slate-800 flex flex-col items-center justify-center p-10 space-y-8 font-inter">
        <div className="text-7xl grayscale opacity-20">🛵</div>
        <div className="text-center space-y-2">
-         <h2 className="text-2xl font-black italic tracking-tighter font-playfair">No Active Deliveries</h2>
-         <p className="text-[10px] font-bold uppercase text-slate-400 tracking-widest max-w-[200px] mx-auto">Your assigned trip will appear here when accepted.</p>
+         <h2 className="text-xl font-bold tracking-tight font-poppins uppercase text-slate-800">No Active Deliveries</h2>
+         <p className="text-[9px] font-bold uppercase text-slate-400 tracking-widest max-w-[200px] mx-auto font-inter">Your assigned trip will appear here when accepted.</p>
        </div>
        <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
          <div className="rounded-[2rem] bg-white border border-[#F0E8D8] p-6 text-center shadow-sm">
-           <p className="text-[9px] font-bold uppercase text-slate-400 mb-1">Today</p>
-           <p className="text-2xl font-black text-brand-red font-playfair">₵{stats.earnings}</p>
+           <p className="text-[9px] font-bold uppercase text-slate-400 mb-1 font-inter tracking-widest">Today</p>
+           <p className="text-2xl font-bold text-brand-red font-poppins">₵{stats.earnings}</p>
          </div>
          <div className="rounded-[2rem] bg-white border border-[#F0E8D8] p-6 text-center shadow-sm">
-           <p className="text-[9px] font-bold uppercase text-slate-400 mb-1">Total Delivered</p>
-           <p className="text-2xl font-black text-slate-800 font-playfair">{stats.deliveries}</p>
+           <p className="text-[9px] font-bold uppercase text-slate-400 mb-1 font-inter tracking-widest">Total Delivered</p>
+           <p className="text-2xl font-bold text-slate-800 font-poppins">{stats.deliveries}</p>
          </div>
        </div>
        <button
@@ -204,32 +222,42 @@ export default function RiderActiveTrip() {
   const destCoords = getAreaCoords(currentStop.area)
 
   return (
-    <div className="min-h-screen bg-brand-cream text-slate-800 pb-32 font-dmsans overflow-x-hidden">
+    <div className="min-h-screen bg-brand-cream text-slate-800 pb-32 font-inter overflow-x-hidden">
       <div className="mx-auto max-w-lg space-y-6">
 
         {/* Header */}
-        <header className="px-6 py-6 flex items-center justify-between sticky top-0 z-[2000] bg-brand-red shadow-lg text-white">
+        <header className="px-6 py-6 flex items-center justify-between sticky top-0 z-[2000] bg-brand-red shadow-lg text-white border-b border-white/10">
           <div className="space-y-0.5">
-            <p className="text-[11px] font-bold uppercase tracking-[2px] text-brand-gold">Current Mission</p>
-            <h1 className="text-3xl font-black font-playfair italic">Active Trip</h1>
+            <p className="text-[9px] font-bold uppercase tracking-widest text-brand-red font-inter">Current Mission</p>
+            <h1 className="text-2xl font-bold font-poppins uppercase tracking-tight">Active Trip</h1>
           </div>
           <div className="text-right space-y-0.5">
-             <p className="text-[10px] font-bold uppercase text-white/60 tracking-wider">Remaining</p>
-             <p className="text-2xl font-black font-playfair">{activeBatch.orders.length}</p>
+             <p className="text-[9px] font-bold uppercase text-white/50 tracking-widest font-inter">Remaining</p>
+             <p className="text-2xl font-bold font-poppins">{activeBatch.orders.length}</p>
           </div>
         </header>
+
+        <AnimatePresence>
+          {chatOrderId && (
+            <ChatDialog 
+              orderId={chatOrderId}
+              orderStatus="Rider"
+              onClose={() => setChatOrderId(null)}
+            />
+          )}
+        </AnimatePresence>
 
         <div className="px-4 space-y-6">
         {/* Status Phase Banner */}
         {isWaitingForPickup ? (
           <div className="rounded-[2rem] bg-white border border-[#F0E8D8] p-6 shadow-sm">
             <div className="flex items-center gap-5">
-              <div className="h-14 w-14 flex items-center justify-center rounded-2xl bg-brand-gold/10 text-3xl shrink-0 animate-pulse border border-brand-gold/20">
+              <div className="h-14 w-14 flex items-center justify-center rounded-2xl bg-brand-red/10 text-3xl shrink-0 animate-pulse border border-brand-red/20">
                 🍳
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] font-black uppercase tracking-widest text-brand-gold">Point A: Pickup</p>
-                <p className="font-bold text-slate-800 leading-tight">
+                <p className="text-[9px] font-bold uppercase tracking-widest text-brand-red font-inter">Point A: Pickup</p>
+                <p className="text-[13px] font-bold text-slate-800 leading-tight font-inter">
                   Restaurant is preparing the order. Please head there now.
                 </p>
               </div>
@@ -239,8 +267,8 @@ export default function RiderActiveTrip() {
           <div className="rounded-[2rem] bg-white border border-[#F0E8D8] p-5 flex items-center gap-5 shadow-sm">
             <div className="h-12 w-12 flex items-center justify-center rounded-2xl bg-brand-red/5 text-2xl shrink-0 border border-brand-red/10">🚀</div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-brand-red">Point B: Delivery</p>
-              <p className="text-sm font-bold text-slate-800">Heading to customer location. Drive safely!</p>
+              <p className="text-[9px] font-bold uppercase tracking-widest text-brand-red font-inter">Point B: Delivery</p>
+              <p className="text-[13px] font-bold text-slate-800 font-inter">Heading to customer location. Drive safely!</p>
             </div>
           </div>
         )}
@@ -251,33 +279,38 @@ export default function RiderActiveTrip() {
              <MapTracker
                position={riderPos}
                destination={destCoords}
+               restaurant={{ lat: currentStop?.restaurant_lat, lng: currentStop?.restaurant_lng }}
                darkMode={false}
              />
            )}
 
            {/* Overlay controls on top of map */}
            <div className="absolute top-5 left-5 right-5 z-[1000] flex items-center gap-4 rounded-2xl bg-white/95 backdrop-blur-md border border-[#F0E8D8] p-4 shadow-xl">
-              <div className={`h-12 w-12 flex items-center justify-center rounded-xl text-2xl shrink-0 ${isWaitingForPickup ? 'bg-brand-gold/10 text-brand-gold' : 'bg-brand-red/10 text-brand-red'}`}>
-                {isWaitingForPickup ? '🍽️' : '📍'}
+              <div className={`h-12 w-12 flex items-center justify-center rounded-xl text-2xl shrink-0 ${isWaitingForPickup ? 'bg-brand-red/10 text-brand-red' : 'bg-brand-red/10 text-brand-red'}`}>
+                {isWaitingForPickup ? '🍽️' : (
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z" />
+                  </svg>
+                )}
               </div>
               <div className="flex-1 overflow-hidden">
-                 <p className={`text-[10px] font-black uppercase tracking-widest ${isWaitingForPickup ? 'text-brand-gold' : 'text-brand-red'}`}>
-                   {isWaitingForPickup ? 'Pickup Location' : 'Destination'}
-                 </p>
-                 <p className="text-base font-black font-playfair text-slate-800 truncate italic">{currentStop.address}</p>
+                  <p className={`text-[9px] font-bold uppercase tracking-widest font-inter ${isWaitingForPickup ? 'text-brand-red' : 'text-brand-red'}`}>
+                    {isWaitingForPickup ? 'Pickup Location' : 'Destination'}
+                  </p>
+                  <p className="text-base font-bold font-poppins text-slate-800 truncate tracking-tight uppercase leading-none mt-1">{currentStop.address}</p>
               </div>
            </div>
 
            <div className="absolute bottom-5 left-5 right-5 z-[1000] flex justify-between gap-3">
               <div className="flex-1 rounded-2xl bg-white/95 backdrop-blur-md border border-[#F0E8D8] flex flex-col justify-center px-5 py-3 shadow-lg">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                   <span className={`h-2 w-2 rounded-full ${isWaitingForPickup ? 'bg-brand-gold animate-pulse' : 'bg-emerald-500'}`} />
+                   <span className={`h-2 w-2 rounded-full ${isWaitingForPickup ? 'bg-brand-red animate-pulse' : 'bg-emerald-500'}`} />
                    {isWaitingForPickup ? 'Waiting at Pick-up' : 'Live GPS Tracking'}
                 </p>
               </div>
               <button
                 onClick={() => handleOpenMaps(currentStop.address, destCoords)}
-                className="rounded-2xl bg-brand-gold px-8 py-3 text-[11px] font-black text-brand-deep-dark uppercase tracking-widest shadow-xl shadow-brand-gold/20 hover:bg-brand-gold-light transition-all active:scale-95"
+                className="rounded-2xl bg-brand-red px-8 py-3 text-[10px] font-bold text-white uppercase tracking-widest shadow-xl shadow-brand-red/20 hover:bg-brand-dark-red transition-all active:scale-95 font-inter"
               >
                 Navigate ↗
               </button>
@@ -287,25 +320,51 @@ export default function RiderActiveTrip() {
         {/* Current Stop Card */}
         <section className="bg-white rounded-[2.5rem] shadow-sm border border-[#F0E8D8] border-l-[8px] border-l-brand-red p-7 space-y-8">
            <div className="flex items-center justify-between border-b border-slate-50 pb-5">
-              <span className="rounded-full bg-brand-red/5 px-4 py-2 text-[10px] font-black uppercase tracking-wider text-brand-red">
+              <span className="rounded-full bg-brand-red/5 px-4 py-2 text-[9px] font-bold uppercase tracking-widest text-brand-red font-inter">
                 Stop #{currentStop.stop_number}
               </span>
-              <p className="text-lg font-black text-brand-red font-playfair italic">Earnings: ₵{currentStop.total}</p>
+              <p className="text-base font-bold text-brand-red font-poppins uppercase tracking-tight">Earnings: ₵{currentStop.total}</p>
            </div>
 
-           <div className="space-y-2">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Recipient Name</p>
-              <p className="text-4xl font-black font-playfair text-slate-800 italic tracking-tighter">{currentStop.customer}</p>
-              <p className="text-base font-medium text-slate-500">{currentStop.address}</p>
-           </div>
+           <div className="space-y-2 relative">
+              <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 font-inter">Recipient Name</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-3xl font-bold font-poppins text-slate-800 tracking-tight">{currentStop.customer}</h2>
+                  <p className="text-[13px] font-medium text-slate-500 font-inter">{currentStop.address}</p>
+                </div>
+                <button 
+                  onClick={() => setChatOrderId(currentStop.id)}
+                  className="relative h-14 w-14 rounded-full bg-brand-cream border border-[#F0E8D8] flex items-center justify-center text-brand-red hover:bg-brand-red hover:text-white transition-all shadow-sm active:scale-95"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  {unreadMessages[currentStop.id] > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-red border-2 border-white text-[10px] text-white font-bold animate-pulse shadow-sm">
+                      {unreadMessages[currentStop.id]}
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
 
            <div className="py-2 space-y-4">
-              <p className="text-[10px] font-black uppercase tracking-widest text-brand-gold">Order Manifest</p>
+              <p className="text-[9px] font-bold uppercase tracking-widest text-brand-red font-inter">Order Manifest</p>
               <div className="space-y-3 bg-brand-cream/30 rounded-[22px] p-5 border border-[#F0E8D8]">
                  {currentStop.items?.map((item, idx) => (
-                    <div key={idx} className="flex justify-between items-center text-sm font-bold border-b border-slate-100 last:border-0 pb-2 last:pb-0">
-                       <span className="text-slate-700">🍲 {item.food}</span>
-                       <span className="text-brand-red font-black font-dmsans">×{item.qty}</span>
+                    <div key={idx} className="flex justify-between items-center text-sm font-bold border-b border-slate-100 last:border-0 pb-2 last:pb-0 font-inter">
+                       <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 rounded-lg overflow-hidden bg-white/50 border border-slate-100 flex items-center justify-center shrink-0">
+                             {item.image ? (
+                               <img src={`http://localhost:8000${item.image}`} alt={item.food} className="h-full w-full object-cover" />
+                             ) : (
+                               '🍲'
+                             )}
+                          </div>
+                          <span className="text-slate-700">{item.food}</span>
+                       </div>
+                       <span className="text-brand-red font-bold font-inter tracking-widest text-xs">×{item.qty}</span>
                     </div>
                  ))}
               </div>
@@ -317,7 +376,7 @@ export default function RiderActiveTrip() {
                <button
                  onClick={handleStartTrip}
                  disabled={confirming}
-                 className="w-full rounded-[18px] bg-brand-gold py-5 text-xs font-black uppercase tracking-[2px] text-brand-deep-dark shadow-xl shadow-brand-gold/20 hover:bg-brand-gold-light active:scale-[0.95] transition-all disabled:opacity-50"
+                 className="w-full rounded-[18px] bg-brand-red py-5 text-xs font-black uppercase tracking-[2px] text-white shadow-xl shadow-brand-red/30 hover:bg-brand-dark-red active:scale-[0.95] transition-all disabled:opacity-50"
                >
                  {confirming ? 'Initializing...' : 'Confirm Pickup & Start'}
                </button>
@@ -339,16 +398,18 @@ export default function RiderActiveTrip() {
         {/* Upcoming Stops */}
         {activeBatch.orders.slice(1).length > 0 && (
           <section className="space-y-4 pb-4">
-             <h3 className="text-[11px] font-black uppercase tracking-[2px] text-slate-400 px-4">Upcoming Sequence ({activeBatch.orders.slice(1).length})</h3>
+             <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 px-4 font-inter">Upcoming Sequence ({activeBatch.orders.slice(1).length})</h3>
              <div className="space-y-3">
                 {activeBatch.orders.slice(1).map((o) => (
                   <div key={o.id} className="flex items-center gap-5 p-5 rounded-[22px] bg-white border border-[#F0E8D8] opacity-70 scale-95 origin-center">
-                     <div className="h-10 w-10 text-2xl flex items-center justify-center shrink-0 bg-slate-50 rounded-xl">
-                       📍
-                     </div>
+                      <div className="h-10 w-10 flex items-center justify-center shrink-0 bg-slate-50 rounded-xl text-brand-red">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                           <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2 2.5 0 110-5 2.5 2.5 0 010 5z" />
+                        </svg>
+                      </div>
                      <div className="overflow-hidden space-y-0.5">
-                        <p className="text-sm font-black text-slate-800 truncate font-playfair">{o.customer}</p>
-                        <p className="text-[10px] font-bold text-slate-400 truncate uppercase tracking-widest">{o.address}</p>
+                        <p className="text-sm font-bold text-slate-800 truncate font-poppins tracking-tight uppercase">{o.customer}</p>
+                        <p className="text-[9px] font-bold text-slate-400 truncate uppercase tracking-widest font-inter">{o.address}</p>
                      </div>
                   </div>
                 ))}
@@ -357,7 +418,7 @@ export default function RiderActiveTrip() {
         )}
 
         {activeBatch.orders.length === 1 && (
-          <p className="text-center py-8 text-[11px] font-black uppercase tracking-[3px] text-brand-gold/50">— Final Destination —</p>
+          <p className="text-center py-8 text-[10px] font-bold uppercase tracking-[0.3em] text-brand-red/50 font-inter">— Final Destination —</p>
         )}
 
         </div> {/* Close padding wrapper */}

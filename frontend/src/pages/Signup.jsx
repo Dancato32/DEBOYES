@@ -30,45 +30,45 @@ export default function Signup() {
             <img src="/logo.png" alt="De Boye's Logo" className="h-24 w-auto object-contain drop-shadow-xl" />
           </div>
           <div>
-            <h1 className="text-3xl font-semibold text-white mt-4">Create account</h1>
-            <p className="mt-2 text-sm text-slate-400">Choose your role and start delivering or ordering food.</p>
+            <h1 className="text-3xl font-bold text-white mt-4 font-poppins tracking-tight">Create account</h1>
+            <p className="mt-2 text-sm text-slate-400 font-inter">Choose your role and start delivering or ordering food.</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <label className="block text-sm font-medium text-slate-200">
+          <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest font-inter">
             Username
             <input
               name="username"
               value={formData.username}
               onChange={handleChange}
-              className="mt-3 w-full rounded-3xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100"
+              className="mt-3 w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 font-inter text-sm focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
               required
             />
           </label>
-          <label className="block text-sm font-medium text-slate-200">
+          <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest font-inter">
             Email
             <input
               name="email"
               type="email"
               value={formData.email}
               onChange={handleChange}
-              className="mt-3 w-full rounded-3xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100"
+              className="mt-3 w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 font-inter text-sm focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
               required
             />
           </label>
-          <label className="block text-sm font-medium text-slate-200">
+          <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest font-inter">
             Password
             <input
               name="password"
               type="password"
               value={formData.password}
               onChange={handleChange}
-              className="mt-3 w-full rounded-3xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100"
+              className="mt-3 w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 font-inter text-sm focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
               required
             />
           </label>
-          <label className="block text-sm font-medium text-slate-200">
+          <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest font-inter">
             Role
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               {['customer', 'rider'].map((type) => (
@@ -76,7 +76,7 @@ export default function Signup() {
                   key={type}
                   type="button"
                   onClick={() => setFormData((current) => ({ ...current, user_type: type }))}
-                  className={`rounded-3xl border px-4 py-3 text-sm font-semibold transition ${formData.user_type === type ? 'border-emerald-500 bg-emerald-500 text-slate-950' : 'border-slate-700 bg-slate-900 text-slate-200'}`}
+                  className={`rounded-2xl border px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-all font-inter ${formData.user_type === type ? 'border-brand-red bg-brand-red text-white' : 'border-slate-700 bg-slate-900 text-slate-400 hover:border-slate-600'}`}
                 >
                   {type === 'customer' ? 'Customer' : 'Rider'}
                 </button>
@@ -86,15 +86,15 @@ export default function Signup() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-3xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-slate-950 shadow-md transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full rounded-2xl bg-brand-red px-4 py-4 text-xs font-bold font-inter uppercase tracking-[0.2em] text-white shadow-lg shadow-brand-red/30 transition hover:bg-brand-dark-red disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? 'Creating account…' : 'Create account'}
           </button>
         </form>
 
-        <p className="text-center text-sm text-slate-500">
+        <p className="text-center text-sm text-slate-500 font-inter font-medium tracking-tight">
           Have an account?{' '}
-          <Link to="/login" className="font-semibold text-white hover:text-emerald-300">
+          <Link to="/login" className="font-bold text-white hover:text-brand-red underline decoration-brand-red/30 underline-offset-4">
             Sign in
           </Link>
         </p>

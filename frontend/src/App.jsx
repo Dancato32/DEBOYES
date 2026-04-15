@@ -50,17 +50,27 @@ export default function App() {
   // ProtectedRoute from seeing isAuthenticated=false on cold refresh
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 rounded-full border-4 border-[#ff5722] border-t-transparent animate-spin" />
-          <p className="text-slate-400 text-sm font-medium tracking-wide">Loading...</p>
+      <div className="flex min-h-screen items-center justify-center bg-brand-red">
+        <div className="flex flex-col items-center gap-6">
+          <div className="relative">
+            <img
+              src="/logo.png"
+              alt="De Boye's"
+              className="h-28 w-28 object-contain animate-pulse drop-shadow-2xl"
+            />
+            <div className="absolute inset-0 rounded-full bg-white/10 blur-2xl animate-pulse" />
+          </div>
+          <div className="flex flex-col items-center gap-1">
+            <span className="font-pacifico text-white lowercase text-3xl tracking-tight">De Boye's</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/50 font-inter">Loading...</span>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className={`min-h-screen flex overflow-hidden ${isAdminPath ? 'bg-brand-cream text-brand-deep-dark font-dmsans' : ''}`}>
+    <div className={`min-h-screen flex overflow-hidden ${isAdminPath ? 'bg-brand-cream text-brand-deep-dark font-inter' : ''}`}>
       {isAdminPath && <AdminSidebar />}
       
       <div className={`flex-1 flex flex-col h-screen overflow-hidden ${isAdminPath ? 'bg-brand-cream' : ''}`}>
@@ -155,6 +165,14 @@ export default function App() {
               element={
                 <ProtectedRoute role="admin">
                   <AdminMenu />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/revenue"
+              element={
+                <ProtectedRoute role="admin">
+                  <AdminRevenue />
                 </ProtectedRoute>
               }
             />

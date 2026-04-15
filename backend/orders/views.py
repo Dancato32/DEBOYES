@@ -8,10 +8,124 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Count, Q
 from django.utils import timezone
-from .models import Order, OrderItem, DeliveryBatch
+from .models import Order, OrderItem, DeliveryBatch, OrderMessage
+from . import services
 from menu.models import FoodItem
 
 User = get_user_model()
+
+@login_required
+def get_order_messages(request, order_id):
+    try:
+        order = Order.objects.get(id=order_id)
+        # Auth check: only customer or rider associated with order can see messages
+        if request.user != order.customer and request.user != order.rider:
+            return JsonResponse({"error": "Unauthorized"}, status=403)
+        
+        messages = order.messages.all().order_by('created_at')
+        data = [
+            {
+                "id": m.id,
+                "sender_id": m.sender.id,
+                "sender_name": m.sender.username,
+                "content": m.content,
+                "is_read": m.is_read,
+                "created_at": m.created_at.isoformat(),
+                "is_me": m.sender == request.user
+            }
+            for m in messages
+        ]
+        return JsonResponse({"messages": data})
+    except Order.DoesNotExist:
+        return JsonResponse({"error": "Order not found"}, status=404)
+
+@login_required
+@csrf_exempt
+def send_order_message(request, order_id):
+    try:
+        order = Order.objects.get(id=order_id)
+        if request.user != order.customer and request.user != order.rider:
+            return JsonResponse({"error": "Unauthorized"}, status=403)
+        
+        data = json.loads(request.body)
+        content = data.get('content')
+        if not content:
+            return JsonResponse({"error": "Content required"}, status=400)
+        
+        message = OrderMessage.objects.create(
+            order=order,
+            sender=request.user,
+            content=content
+        )
+
+        # Broadcast via WebSocket
+        room_group_name = f"order_{order_id}"
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            room_group_name,
+            {
+                "type": "chat_message",
+                "message": {
+                    "id": message.id,
+                    "sender_id": message.sender.id,
+                    "sender_name": message.sender.username,
+                    "content": message.content,
+                    "created_at": message.created_at.isoformat()
+                }
+            }
+        )
+
+        # Notify the recipient specifically (Rider or Customer)
+        recipient = order.rider if request.user == order.customer else order.customer
+        if recipient:
+            recipient_group = f"user_{recipient.id}"
+            async_to_sync(channel_layer.group_send)(
+                recipient_group,
+                {
+                    "type": "rider_order_event", # Common handler for UI updates
+                    "data": {
+                        "event": "NEW_CHAT_MESSAGE",
+                        "payload": {
+                            "order_id": order_id,
+                            "sender_name": request.user.username,
+                            "content": content
+                        }
+                    }
+                }
+            )
+
+        return JsonResponse({"message": "Sent", "id": message.id})
+    except Order.DoesNotExist:
+        return JsonResponse({"error": "Order not found"}, status=404)
+
+@login_required
+@csrf_exempt
+def mark_messages_as_read(request, order_id):
+    try:
+        order = Order.objects.get(id=order_id)
+        if request.user != order.customer and request.user != order.rider:
+            return JsonResponse({"error": "Unauthorized"}, status=403)
+        
+        # Mark all messages sent by the OTHER party as read
+        unread = order.messages.filter(is_read=False).exclude(sender=request.user)
+        unread_count = unread.count()
+        unread.update(is_read=True)
+
+        if unread_count > 0:
+            # Broadcast read notification
+            room_group_name = f"order_{order_id}"
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                room_group_name,
+                {
+                    "type": "messages_read",
+                    "reader_id": request.user.id
+                }
+            )
+
+        return JsonResponse({"message": "Marked as read", "count_updated": unread_count})
+    except Order.DoesNotExist:
+        return JsonResponse({"error": "Order not found"}, status=404)
 
 def broadcast_admin_update(event_type, data=None):
     channel_layer = get_channel_layer()
@@ -115,7 +229,11 @@ def place_order(request):
         customer=request.user,
         address=data['address'],
         area=data['area'],
-        total_price=data['total_price']
+        total_price=data['total_price'],
+        lat=data.get('lat'),
+        lng=data.get('lng'),
+        restaurant_lat=data.get('restaurant_lat', 5.6037),
+        restaurant_lng=data.get('restaurant_lng', -0.1870)
     )
 
     items = data.get('items', [])
@@ -182,7 +300,33 @@ def accept_order(request, order_id):
         order.rider = request.user
         order.status = 'assigned'
         order.assigned_at = timezone.now()
+        
+        # Initialize Dynamic Batching for the rider
+        request.user.batch_open = True
+        request.user.save()
+        
+        # Initialize the batch window if it's a new batch
+        if order.batch:
+            if not order.batch.accepted_at:
+                order.batch.accepted_at = timezone.now()
+                order.batch.window_expires_at = timezone.now() + timezone.timedelta(minutes=10)
+                order.batch.rider = request.user
+                order.batch.status = 'accepted'
+                order.batch.save()
+        else:
+            # Create a single-order batch for tracking purposes if one doesn't exist
+            batch = DeliveryBatch.objects.create(
+                rider=request.user,
+                status='accepted',
+                accepted_at=timezone.now(),
+                window_expires_at=timezone.now() + timezone.timedelta(minutes=10)
+            )
+            order.batch = batch
+        
         order.save()
+        
+        # Recalculate priorities in the batch
+        services.optimize_delivery_route(order.batch)
 
         request.user.last_assigned_at = timezone.now()
         request.user.save()
@@ -249,7 +393,7 @@ def get_batch_details(request, batch_id):
                 "address": o.address,
                 "status": o.status,
                 "stop_number": o.stop_number,
-                "items": [{"name": i.food.name, "qty": i.quantity} for i in o.items.all()]
+                "items": [{"food": i.food.name, "qty": i.quantity, "image": i.food.image.url if i.food.image else None} for i in o.items.all()]
             })
         
         return JsonResponse({
@@ -396,7 +540,10 @@ def assigned_orders(request):
     if not request.user.is_rider():
         return JsonResponse({"error": "Only riders allowed"}, status=403)
 
-    orders = Order.objects.filter(rider=request.user).select_related('customer').prefetch_related('items__food').order_by('-created_at')
+    orders = Order.objects.filter(
+        rider=request.user,
+        status__in=['assigned', 'on_the_way']
+    ).select_related('customer').prefetch_related('items__food').order_by('stop_number')
     data = [
         {
             'id': order.id,
@@ -411,7 +558,8 @@ def assigned_orders(request):
                 {
                     'food': item.food.name,
                     'qty': item.quantity,
-                    'price': str(item.get_price())
+                    'price': str(item.get_price()),
+                    'image': item.food.image.url if item.food.image else None
                 }
                 for item in order.items.all()
             ]
@@ -443,7 +591,8 @@ def pending_orders(request):
                 {
                     'food': item.food.name,
                     'qty': item.quantity,
-                    'price': str(item.get_price())
+                    'price': str(item.get_price()),
+                    'image': item.food.image.url if item.food.image else None
                 }
                 for item in order.items.all()
             ]
@@ -463,7 +612,8 @@ def track_order(request, order_id):
         {
             "food": i.food.name,
             "qty": i.quantity,
-            "price": str(i.get_price())
+            "price": str(i.get_price()),
+            "image": i.food.image.url if i.food.image else None
         }
         for i in order.items.all()
     ]
@@ -506,7 +656,7 @@ def get_history(request):
             'total': str(order.total_price),
             'date': (order.delivered_at or order.created_at).strftime('%H:%M • %b %d, %Y'),
             'items': [
-                {'name': i.food.name, 'qty': i.quantity}
+                {'food': i.food.name, 'qty': i.quantity, 'image': i.food.image.url if i.food.image else None}
                 for i in order.items.all()
             ]
         }

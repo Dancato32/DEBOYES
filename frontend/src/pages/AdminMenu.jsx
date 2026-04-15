@@ -104,14 +104,14 @@ export default function AdminMenu() {
   return (
     <div className="space-y-10 py-6">
       <header>
-        <h1 className="text-3xl font-bold font-playfair text-brand-deep-dark tracking-tight">Menu Items</h1>
+        <h1 className="text-2xl font-bold font-poppins text-brand-deep-dark tracking-tight uppercase">Menu Items</h1>
         <p className="mt-2 text-brand-charcoal font-medium">Add, edit, or remove items customers can order.</p>
       </header>
 
       <div className="grid gap-10 lg:grid-cols-[1.5fr_1fr]">
         {/* Add New Item Form */}
         <section className="rounded-[2.5rem] bg-white p-8 shadow-soft border border-[#F0E8D8]">
-          <h2 className="text-xl font-bold font-playfair text-brand-deep-dark">Add new item</h2>
+          <h2 className="text-lg font-bold font-poppins text-brand-deep-dark uppercase tracking-wide">Add new item</h2>
           <form onSubmit={handleSubmit} className="mt-8 space-y-6 text-left">
             <div className="space-y-2">
               <label className="text-[10px] font-bold uppercase tracking-widest text-brand-charcoal/60 pl-2">Item photo</label>
@@ -222,7 +222,7 @@ export default function AdminMenu() {
 
         {/* Current Menu Feed */}
         <section className="rounded-[2.5rem] bg-white p-8 shadow-soft border border-[#F0E8D8] overflow-hidden flex flex-col h-[700px]">
-          <h2 className="text-xl font-bold font-playfair text-brand-deep-dark">Current menu</h2>
+          <h2 className="text-lg font-bold font-poppins text-brand-deep-dark uppercase tracking-wide">Current menu</h2>
           <div className="mt-8 space-y-4 overflow-y-auto pr-2 no-scrollbar flex-1">
             {loading ? (
                 <p className="text-brand-charcoal text-center py-10">Loading menu...</p>

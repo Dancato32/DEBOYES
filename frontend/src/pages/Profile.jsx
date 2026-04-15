@@ -11,8 +11,8 @@ const ProfileItem = ({ label, value, icon, onClick, red }) => (
         {icon}
       </div>
       <div className="text-left flex flex-col justify-center gap-0.5">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] font-dmsans text-slate-400">{label}</p>
-        <p className={`font-bold font-dmsans text-sm ${red ? 'text-brand-red' : 'text-slate-800'}`}>{value}</p>
+        <p className="text-[10px] font-bold uppercase tracking-widest font-inter text-slate-400">{label}</p>
+        <p className={`font-semibold font-inter text-sm ${red ? 'text-brand-red' : 'text-slate-800'}`}>{value}</p>
       </div>
     </div>
     <div className="text-slate-300">
@@ -30,50 +30,102 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen pb-32 bg-brand-cream text-slate-800">
-      <div className="mx-auto max-w-lg px-4 pt-16 space-y-10">
-        
-        {/* Profile Header */}
-        <section className="flex flex-col items-center text-center space-y-4">
-          <div className="relative">
-             <div className="flex h-28 w-28 items-center justify-center rounded-[2.5rem] text-4xl font-black font-playfair shadow-2xl italic bg-brand-red text-white shadow-brand-red/20">
-               {initials}
-             </div>
-             <div className="absolute -bottom-2 -right-2 flex h-10 w-10 items-center justify-center rounded-2xl border-4 bg-white border-brand-cream text-brand-red">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+      <div className="mx-auto max-w-5xl px-6 pt-16">
+        <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-10 items-start">
+
+          {/* LEFT: Avatar + Stats */}
+          <div className="lg:sticky lg:top-16 space-y-6">
+            {/* Profile Header */}
+            <section className="flex flex-col items-center text-center space-y-5 bg-white rounded-[2.5rem] p-8 border border-[#F0E8D8] shadow-soft">
+              <div className="relative">
+                 <div className="flex h-28 w-28 items-center justify-center rounded-[2.5rem] text-4xl font-bold font-poppins shadow-2xl bg-brand-red text-white shadow-brand-red/20">
+                   {initials}
+                 </div>
+                 <div className="absolute -bottom-2 -right-2 flex h-10 w-10 items-center justify-center rounded-2xl border-4 bg-white border-brand-cream text-brand-red shadow-lg">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                    </svg>
+                 </div>
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold font-poppins text-slate-900 tracking-tight">{user?.username}</h1>
+                <p className="text-xs font-semibold mt-1 font-inter text-slate-400">{isRider ? 'Certified Rider' : 'Valued Customer'}</p>
+              </div>
+            </section>
+
+            {/* Stats Summary */}
+            <section className="grid grid-cols-2 gap-4">
+               <div className="p-5 rounded-[2rem] border text-center bg-white border-[#F0E8D8] shadow-sm">
+                  <p className="text-2xl font-bold font-poppins text-brand-red">{user?.active_days || 1}</p>
+                  <p className="text-[10px] font-bold uppercase text-slate-400 tracking-widest mt-1 font-inter">Active Days</p>
+               </div>
+               <div className="p-5 rounded-[2rem] border text-center bg-white border-[#F0E8D8] shadow-sm">
+                  <p className="text-2xl font-bold font-poppins text-brand-red">{user?.membership_status || 'Bronze'}</p>
+                  <p className="text-[10px] font-bold uppercase text-slate-400 tracking-widest mt-1 font-inter">Membership</p>
+               </div>
+            </section>
+
+            <div className="text-center hidden lg:block">
+              <p className="text-[11px] font-medium tracking-[0.05em] font-inter text-slate-400">
+                <span className="font-pacifico text-brand-red lowercase text-sm">De Boye's</span> v1.2.4
+              </p>
+            </div>
+          </div>
+
+          {/* RIGHT: Action List */}
+          <div className="space-y-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 font-inter px-1">Account Settings</p>
+            <ProfileItem 
+              label="Email Address" 
+              value={user?.email} 
+              icon={
+                <svg className="w-5 h-5 text-brand-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-             </div>
+              } 
+            />
+            {user?.phone && (
+              <ProfileItem 
+                label="Phone Number" 
+                value={user?.phone} 
+                icon={
+                  <svg className="w-5 h-5 text-brand-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                } 
+              />
+            )}
+
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 font-inter px-1 pt-4">Support & Account</p>
+            <ProfileItem 
+              label="Get Support" 
+              value="Help Center" 
+              icon={
+                <svg className="w-5 h-5 text-brand-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              } 
+            />
+            <ProfileItem 
+              label="Account Security" 
+              value="Log Out" 
+              icon={
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              } 
+              red 
+              onClick={logout} 
+            />
+
+            <div className="mt-8 text-center lg:hidden">
+              <p className="text-[11px] font-medium tracking-[0.05em] font-inter text-slate-400">
+                <span className="font-pacifico text-brand-red lowercase text-sm">De Boye's</span> v1.2.4
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl font-black font-playfair tracking-tight">{user?.username}</h1>
-            <p className="text-[10px] font-bold uppercase tracking-widest mt-1 font-dmsans text-slate-400">{isRider ? 'Certified Rider' : 'Valued Customer'}</p>
-          </div>
-        </section>
 
-        {/* Stats Summary (Simulated) */}
-        <section className="grid grid-cols-2 gap-4">
-           <div className="p-5 rounded-[2rem] border text-center bg-white border-[#F0E8D8] shadow-sm">
-              <p className="text-2xl font-black font-playfair text-brand-red">24</p>
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mt-1 font-dmsans">Active Days</p>
-           </div>
-           <div className="p-5 rounded-[2rem] border text-center bg-white border-[#F0E8D8] shadow-sm">
-              <p className="text-2xl font-black font-playfair text-brand-red">Gold</p>
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mt-1 font-dmsans">Membership</p>
-           </div>
-        </section>
-
-        {/* Action List */}
-        <div className="space-y-4">
-          <ProfileItem label="Email Address" value={user?.email} icon="📧" />
-          {user?.phone && <ProfileItem label="Phone Number" value={user?.phone} icon="📱" />}
-          <ProfileItem label="Support" value="Get Help" icon="🎧" />
-          <ProfileItem label="Security" value="Logout" icon="🚪" red onClick={logout} />
         </div>
-
-        <div className="mt-8 text-center">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] font-dmsans text-slate-400">De Boye's v1.2.4</p>
-        </div>
-
       </div>
       <BottomNav />
     </div>

@@ -32,43 +32,43 @@ export default function Login() {
             <img src="/logo.png" alt="De Boye's Logo" className="h-24 w-auto object-contain drop-shadow-xl" />
           </div>
           <div>
-            <h1 className="text-3xl font-semibold text-white mt-4">Welcome back</h1>
-            <p className="mt-2 text-sm text-slate-400">Sign in to continue browsing menus and tracking deliveries.</p>
+            <h1 className="text-3xl font-bold text-white mt-4 font-poppins tracking-tight">Welcome back</h1>
+            <p className="mt-2 text-sm text-slate-400 font-inter">Sign in to continue browsing menus and tracking deliveries.</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <label className="block text-sm font-medium text-slate-200">
+          <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest font-inter">
             Username
             <input
               value={username}
               onChange={(event) => setUsername(event.target.value)}
-              className="mt-3 w-full rounded-3xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 focus:border-[#ff5722] focus:outline-none focus:ring-1 focus:ring-[#ff5722]"
+              className="mt-3 w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red font-inter text-sm"
               required
             />
           </label>
-          <label className="block text-sm font-medium text-slate-200">
+          <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest font-inter">
             Password
             <input
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="mt-3 w-full rounded-3xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 focus:border-[#ff5722] focus:outline-none focus:ring-1 focus:ring-[#ff5722]"
+              className="mt-3 w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red font-inter text-sm"
               required
             />
           </label>
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-3xl bg-[#ff5722] px-4 py-3 text-sm font-bold text-white shadow-lg shadow-[#ff5722]/30 transition hover:bg-[#ff5722]/80 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full rounded-2xl bg-brand-red px-4 py-4 text-xs font-bold font-inter uppercase tracking-[0.2em] text-white shadow-lg shadow-brand-red/30 transition hover:bg-brand-dark-red disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
 
-        <div className="text-center text-sm text-slate-500">
+        <div className="text-center text-sm text-slate-500 font-inter font-medium tracking-tight">
           New here?{' '}
-          <Link to="/signup" className="font-semibold text-white hover:text-[#ff5722]">
+          <Link to="/signup" className="font-bold text-white hover:text-brand-red underline decoration-brand-red/30 underline-offset-4">
             Create an account
           </Link>
         </div>

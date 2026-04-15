@@ -214,163 +214,175 @@ export default function Checkout() {
   return (
     <div className="min-h-screen bg-brand-cream pb-32">
       {/* Header */}
-      <header className="bg-white px-6 py-5 flex items-center justify-between sticky top-0 z-10 shadow-sm">
-        <button onClick={() => navigate('/customer')} className="text-slate-500 hover:text-slate-800 transition-colors">
-           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" /></svg>
-        </button>
-        <h1 className="text-lg font-bold text-slate-800">Checkout</h1>
-        <div className="w-6"></div>
+      <header className="bg-white px-6 py-5 flex items-center justify-between sticky top-0 z-50 shadow-sm">
+        <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
+          <button onClick={() => navigate('/customer')} className="text-slate-500 hover:text-slate-800 transition-colors">
+             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" /></svg>
+          </button>
+          <h1 className="text-xl font-bold text-slate-800 font-poppins tracking-tight">Checkout</h1>
+          <div className="w-6"></div>
+        </div>
       </header>
 
-      <div className="max-w-lg mx-auto pt-6 px-4 space-y-6">
-        
-        {/* Order Review List */}
-        <div className="bg-white rounded-3xl p-5 shadow-sm space-y-4 border border-[#F0E8D8]">
-          <h2 className="text-[11px] font-bold uppercase tracking-[0.15em] text-brand-red">Your Order</h2>
+      <div className="max-w-7xl mx-auto pt-8 px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-10 items-start">
           
-          <div className="space-y-5">
-            {cartItems.map(item => (
-              <div key={item.food_id} className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                   <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-orange-50 text-xl overflow-hidden shrink-0">
-                     🍲
-                   </div>
-                   <div>
-                     <p className="font-bold text-[15px] text-slate-800 leading-none">{item.name}</p>
-                     <p className="text-sm font-black font-playfair text-brand-red mt-1">₵{item.price}</p>
-                   </div>
-                </div>
+          {/* LEFT COLUMN: Delivery Details */}
+          <div className="space-y-6">
+            <div className="bg-white rounded-[2.5rem] p-8 shadow-soft border border-[#F0E8D8] space-y-8">
+              {/* Integrated Header removed for cleaner look */}
 
-                <div className="flex items-center gap-3 bg-[#f2f4f6] rounded-full px-2 py-1">
-                  <button 
-                    onClick={() => updateQty(item.food_id, item.qty - 1)}
-                    className="h-7 w-7 flex items-center justify-center rounded-full bg-white text-slate-600 shadow-sm active:scale-90 transition-transform"
-                  >
-                    -
-                  </button>
-                  <span className="font-bold pl-1 pr-1 text-sm">{item.qty.toString().padStart(2, '0')}</span>
-                  <button 
-                    onClick={() => updateQty(item.food_id, item.qty + 1)}
-                    className="h-7 w-7 flex items-center justify-center rounded-full bg-brand-gold text-brand-deep-dark shadow-sm shadow-brand-gold/30 active:scale-90 transition-transform"
-                  >
-                    +
-                  </button>
+              {/* USE MY LOCATION BUTTON */}
+              {/* Simplified Location Button */}
+              <div className="flex justify-between items-center bg-brand-cream/30 p-4 rounded-2xl border border-brand-cream hover:bg-brand-cream/50 transition-colors group cursor-pointer" onClick={handleUseLocation}>
+                <div className="flex items-center gap-4">
+                  <div className={`h-10 w-10 flex items-center justify-center rounded-xl bg-brand-red text-white transition-transform group-hover:scale-110 ${locating ? 'animate-spin' : ''}`}>
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                       <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-brand-deep-dark font-poppins">{locating ? 'Detecting...' : 'Locate Me'}</p>
+                    <p className="text-[10px] text-slate-400 font-inter uppercase tracking-widest">{locating ? 'GPS Active' : 'Auto-detect Address'}</p>
+                  </div>
                 </div>
+                <button className="text-brand-red font-black text-[10px] uppercase tracking-widest bg-white px-3 py-1.5 rounded-lg shadow-sm border border-brand-red/10">Detect</button>
               </div>
-            ))}
-          </div>
-        </div>
 
-        {/* Delivery Details */}
-        <div className="bg-white rounded-3xl p-5 shadow-sm border border-[#F0E8D8] space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.15em] text-brand-red">Delivery Details</h2>
-          </div>
-
-          {/* USE MY LOCATION BUTTON */}
-          <button
-            onClick={handleUseLocation}
-            disabled={locating}
-            className="w-full flex items-center gap-4 px-5 py-4 rounded-2xl bg-transparent border-2 border-brand-gold hover:bg-brand-gold/5 transition-all active:scale-[0.98] disabled:opacity-60"
-          >
-            <div className={`h-10 w-10 flex items-center justify-center rounded-xl bg-brand-gold/20 text-brand-gold text-lg shrink-0 ${locating ? 'animate-pulse' : ''}`}>
-              {locating ? (
-                <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="30 70" />
-                </svg>
-              ) : (
-                '📍'
+              {/* Mini map preview */}
+              {showMap && coords && (
+                <div className="rounded-[2rem] overflow-hidden border-2 border-[#F0E8D8] shadow-inner animate-in fade-in slide-in-from-top-4 duration-500" style={{ height: '240px' }}>
+                  <div ref={mapRef} className="h-full w-full" />
+                </div>
               )}
-            </div>
-            <div className="text-left">
-              <p className="text-sm font-bold text-brand-deep-dark">
-                {locating ? 'Detecting your location...' : 'Use My Live Location'}
-              </p>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                {locating ? 'Please wait a moment' : 'Auto-fill address using GPS • drag pin to adjust'}
-              </p>
-            </div>
-          </button>
 
-          {/* Mini map preview (only shown after location is detected) */}
-          {showMap && coords && (
-            <div className="rounded-2xl overflow-hidden border-2 border-slate-100 shadow-sm" style={{ height: '180px' }}>
-              <div ref={mapRef} className="h-full w-full" />
-            </div>
-          )}
+              {/* Detected location badge */}
+              {coords && address && (
+                <div className="flex items-start gap-4 p-5 rounded-3xl bg-emerald-50 border border-emerald-100 animate-in zoom-in-95 duration-300">
+                  <div className="h-10 w-10 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xl shrink-0 shadow-sm">✓</div>
+                  <div>
+                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest font-inter">Auto-detected Address</p>
+                    <p className="text-base text-emerald-900 mt-1 font-bold leading-snug font-inter">{address}</p>
+                    {area && <p className="text-xs text-emerald-600 mt-1.5 font-black uppercase tracking-widest font-inter flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+                      Zone: {area}
+                    </p>}
+                  </div>
+                </div>
+              )}
 
-          {/* Detected location badge */}
-          {coords && address && (
-            <div className="flex items-start gap-3 px-4 py-3 rounded-2xl bg-emerald-50 border border-emerald-200">
-              <span className="text-emerald-600 text-lg mt-0.5">✓</span>
-              <div>
-                <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Detected Location</p>
-                <p className="text-sm text-emerald-900 mt-0.5 leading-snug">{address}</p>
-                {area && <p className="text-xs text-emerald-600 mt-0.5 font-bold">Area: {area}</p>}
+              <div className="h-2"></div>
+
+              <div className="space-y-6">
+                <div>
+                  <input 
+                    id="address"
+                    type="text" 
+                    value={address}
+                    onChange={e => setAddress(e.target.value)}
+                    placeholder="Full Address / Landmark" 
+                    className="w-full bg-slate-50 border border-[#F0E8D8] rounded-[20px] px-6 py-4 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-brand-red outline-none font-inter transition-all shadow-sm"
+                  />
+                </div>
+                <div>
+                  <input 
+                    id="area"
+                    type="text" 
+                    value={area}
+                    onChange={e => setArea(e.target.value)}
+                    placeholder="Neighborhood / Area" 
+                    className="w-full bg-slate-50 border border-[#F0E8D8] rounded-[20px] px-6 py-4 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-brand-red outline-none font-inter transition-all shadow-sm"
+                  />
+                </div>
               </div>
             </div>
-          )}
-
-          {/* Divider */}
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-slate-200"></div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">or enter manually</span>
-            <div className="flex-1 h-px bg-slate-200"></div>
           </div>
 
-          {/* Manual input fields */}
-          <div className="space-y-3">
-            <div>
-              <label className="block text-xs font-bold text-slate-500 mb-1 ml-1" htmlFor="address">Full Address</label>
-              <input 
-                id="address"
-                type="text" 
-                value={address}
-                onChange={e => setAddress(e.target.value)}
-                placeholder="e.g. 15B Oxford Street, Osu" 
-                className="w-full bg-white border border-[#F0E8D8] rounded-2xl px-5 py-4 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-brand-gold outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-500 mb-1 ml-1" htmlFor="area">City / Zone</label>
-              <input 
-                id="area"
-                type="text" 
-                value={area}
-                onChange={e => setArea(e.target.value)}
-                placeholder="e.g. East Legon" 
-                className="w-full bg-white border border-[#F0E8D8] rounded-2xl px-5 py-4 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-brand-gold outline-none"
-              />
+          {/* RIGHT COLUMN: Order Review */}
+          <div className="space-y-6 lg:sticky lg:top-28">
+            <div className="bg-white rounded-[2.5rem] p-8 shadow-soft border border-[#F0E8D8] space-y-8">
+              <div className="flex items-center justify-between mb-4">
+                 <h2 className="text-sm font-black uppercase tracking-widest text-brand-deep-dark font-poppins">Order Summary</h2>
+                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{cartItems.length} Items</span>
+              </div>
+              
+              <div className="divide-y divide-[#F0E8D8]">
+                {cartItems.map(item => (
+                  <div key={item.food_id} className="py-5 flex items-center justify-between group">
+                    <div className="flex items-center gap-4">
+                       <div className="h-14 w-14 flex items-center justify-center rounded-2xl bg-brand-cream text-2xl overflow-hidden shrink-0 border border-[#F0E8D8] shadow-sm transform transition-transform group-hover:scale-105">
+                         {item.image ? (
+                           <img src={`http://localhost:8000${item.image}`} alt={item.name} className="h-full w-full object-cover" />
+                         ) : (
+                           '🍲'
+                         )}
+                       </div>
+                       <div>
+                         <p className="font-black text-base text-brand-deep-dark leading-tight font-poppins">{item.name}</p>
+                         <p className="text-xs font-black text-brand-red mt-1 font-inter uppercase tracking-widest">₵{item.price}</p>
+                       </div>
+                    </div>
+
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="flex items-center gap-4 bg-brand-cream/50 rounded-2xl px-3 py-1.5 border border-[#F0E8D8]">
+                        <button 
+                          onClick={() => updateQty(item.food_id, item.qty - 1)}
+                          className="h-6 w-6 flex items-center justify-center rounded-lg bg-white text-slate-600 shadow-sm active:scale-75 transition-transform border border-[#F0E8D8]"
+                        >
+                          -
+                        </button>
+                        <span className="font-black text-sm font-inter w-6 text-center">{item.qty}</span>
+                        <button 
+                          onClick={() => updateQty(item.food_id, item.qty + 1)}
+                          className="h-6 w-6 flex items-center justify-center rounded-lg bg-brand-red text-white shadow-md shadow-brand-red/20 active:scale-75 transition-transform"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Invoice Table */}
+              <div className="pt-6 space-y-4">
+                 <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-[0.2em] font-inter">
+                   <span>Items Subtotal</span>
+                   <span className="text-slate-800 font-black">₵{total.toFixed(2)}</span>
+                 </div>
+                 <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-[0.2em] font-inter">
+                   <span>Delivery Service</span>
+                   <span className="text-emerald-500 font-black">₵{deliveryFee.toFixed(2)}</span>
+                 </div>
+                 <div className="border-t-2 border-brand-cream pt-6 flex items-center justify-between">
+                   <span className="text-lg font-black text-brand-deep-dark font-poppins tracking-tighter uppercase underline decoration-brand-red/30 decoration-4">Grand Total</span>
+                   <span className="text-3xl font-black font-poppins text-brand-red tracking-tighter animate-pulse">₵{grandTotal.toFixed(2)}</span>
+                 </div>
+              </div>
+
+              <button 
+                onClick={handlePlaceOrder}
+                disabled={isSubmitting}
+                className="w-full h-16 flex items-center justify-center rounded-2xl bg-brand-red text-white shadow-2xl shadow-brand-red/30 hover:bg-brand-dark-red transition-all active:scale-[0.97] disabled:opacity-50"
+              >
+                <div className="flex flex-col items-center">
+                  <span className="font-black text-xs font-inter uppercase tracking-[0.3em]">{isSubmitting ? 'Finalizing...' : 'Send Official Order'}</span>
+                  {!isSubmitting && <span className="text-[9px] opacity-70 uppercase tracking-widest font-inter mt-0.5">Accra • Ghana</span>}
+                </div>
+              </button>
             </div>
           </div>
         </div>
-
-        {/* Invoice Summary */}
-        <div className="bg-white rounded-3xl p-5 shadow-sm border border-[#F0E8D8] space-y-3 mt-4">
-           <div className="flex items-center justify-between text-sm font-bold text-slate-500">
-             <span>Subtotal</span>
-             <span className="text-slate-800">₵{total.toFixed(2)}</span>
-           </div>
-           <div className="flex items-center justify-between text-sm font-bold text-slate-500">
-             <span>Delivery</span>
-             <span className="text-slate-800">₵{deliveryFee.toFixed(2)}</span>
-           </div>
-           <div className="border-t border-[#F0E8D8] my-2 pt-3 flex items-center justify-between">
-             <span className="text-lg font-black text-slate-800">Total</span>
-             <span className="text-2xl font-black font-playfair text-brand-red">₵{grandTotal.toFixed(2)}</span>
-           </div>
-        </div>
-
       </div>
 
-      {/* Floating Action Button */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-100 p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+      {/* Mobile Floating Action Button (Only on small screens) */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-md border-t border-slate-100 p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
         <button 
           onClick={handlePlaceOrder}
           disabled={isSubmitting}
-          className="w-full max-w-lg mx-auto flex items-center justify-center rounded-[12px] bg-brand-gold py-4 text-brand-deep-dark shadow-xl hover:bg-brand-gold-light transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+          className="w-full max-w-lg mx-auto flex items-center justify-center rounded-2xl bg-brand-red h-16 text-white shadow-xl active:scale-95 disabled:opacity-50"
         >
-          <span className="font-bold text-lg">{isSubmitting ? 'Processing...' : 'Place Official Order'}</span>
+          <span className="font-black text-xs font-inter uppercase tracking-[0.3em]">{isSubmitting ? 'Processing...' : 'Place Official Order'}</span>
         </button>
       </div>
     </div>

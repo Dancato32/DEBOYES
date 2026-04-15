@@ -59,6 +59,23 @@ def logout_view(request):
 def current_user(request):
     if not request.user.is_authenticated:
         return JsonResponse({"error": "Not authenticated"}, status=401)
+    
+    from django.utils import timezone
+    from orders.models import Order
+    
+    # Calculate Active Days
+    active_days = (timezone.now().date() - request.user.date_joined.date()).days + 1
+    
+    # Calculate Membership Status based on orders
+    order_count = Order.objects.filter(customer=request.user, status='delivered').count()
+    
+    membership_status = "Bronze"
+    if order_count > 50:
+        membership_status = "Diamond"
+    elif order_count > 20:
+        membership_status = "Gold"
+    elif order_count > 5:
+        membership_status = "Silver"
         
     return JsonResponse({
         'user': {
@@ -67,7 +84,10 @@ def current_user(request):
             'email': request.user.email,
             'user_type': request.user.user_type,
             'is_available': request.user.is_available,
-            'current_area': request.user.current_area
+            'current_area': request.user.current_area,
+            'active_days': active_days,
+            'membership_status': membership_status,
+            'order_count': order_count
         }
     })
 

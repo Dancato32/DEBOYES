@@ -35,6 +35,11 @@ def get_admin_stats(request):
     y_orders = Order.objects.filter(created_at__date=yesterday).count()
     y_revenue = Order.objects.filter(delivered_at__date=yesterday).aggregate(Sum('total_price'))['total_price__sum'] or 0
     
+    # Lifetime Stats
+    delivered_orders_all = Order.objects.filter(status='delivered')
+    lifetime_revenue = delivered_orders_all.aggregate(Sum('total_price'))['total_price__sum'] or 0
+    lifetime_deliveries = delivered_orders_all.count()
+
     # Calculate Trends
     def get_trend(current, previous):
         if previous == 0:
@@ -50,6 +55,8 @@ def get_admin_stats(request):
         "total_orders": total_orders,
         "active_riders": active_riders,
         "total_revenue": str(total_revenue),
+        "lifetime_revenue": str(lifetime_revenue),
+        "lifetime_deliveries": lifetime_deliveries,
         "today_deliveries": today_deliveries,
         "order_trend": order_trend,
         "revenue_trend": revenue_trend,
@@ -175,11 +182,16 @@ def mark_order_ready(request, order_id):
             order.save()
             
             # TRIGGER SMART BATCHING ENGINE
-            from orders.views import create_batch
-            create_batch(order)
+            from orders import services
+            assigned_rider = services.find_smart_assignment(order)
+            
+            if not assigned_rider:
+                # If no smart assignment found, fall back to static area batching
+                from orders.views import create_batch
+                create_batch(order)
 
             broadcast_admin_update("ORDER_STATUS_UPDATED", {"order_id": order.id, "status": "Ready"})
-            return JsonResponse({"message": "Order marked as ready and added to batching queue!"})
+            return JsonResponse({"message": "Order marked as ready and processed for assignment!"})
         except Order.DoesNotExist:
             return JsonResponse({"error": "Order not found"}, status=404)
     return JsonResponse({"error": "Invalid request method"}, status=405)
