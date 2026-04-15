@@ -19,7 +19,13 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+from django.http import JsonResponse
+
+def root_view(request):
+    return JsonResponse({"message": "API is running"})
+
 urlpatterns = [
+    path('', root_view),
     path('django-admin/', admin.site.urls),
     path('api/auth/', include('users.urls')),
     path('api/menu/', include('menu.urls')),
