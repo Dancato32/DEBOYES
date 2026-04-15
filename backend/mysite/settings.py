@@ -93,12 +93,20 @@ CHANNEL_LAYERS = {
 
 # Database
 # Use PostgreSQL on Render (via DATABASE_URL environment variable)
+database_url = os.environ.get('DATABASE_URL', '').strip()
+if not database_url:
+    database_url = f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
+
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL', f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
+        default=database_url,
         conn_max_age=600
     )
 }
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/6.0/ref/settings/#default-auto-field
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # Password validation
