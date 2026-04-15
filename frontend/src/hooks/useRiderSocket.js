@@ -23,7 +23,7 @@ export default function useRiderSocket(onMessage, enabled = true) {
     const wsUrl = `${protocol}//${window.location.host}/ws/riders/orders/${area}/`
 
     const connect = () => {
-      console.log('Connecting to Rider Socket...')
+
       socketRef.current = new WebSocket(wsUrl)
 
       socketRef.current.onmessage = (event) => {
@@ -36,7 +36,7 @@ export default function useRiderSocket(onMessage, enabled = true) {
       }
 
       socketRef.current.onclose = () => {
-        console.log('Rider Socket disconnected. Reconnecting in 5s...')
+
         setTimeout(() => {
           if (enabled) connect()
         }, 5000)

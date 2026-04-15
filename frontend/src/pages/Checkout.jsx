@@ -312,7 +312,7 @@ export default function Checkout() {
                     <div className="flex items-center gap-4">
                        <div className="h-14 w-14 flex items-center justify-center rounded-2xl bg-brand-cream text-2xl overflow-hidden shrink-0 border border-[#F0E8D8] shadow-sm transform transition-transform group-hover:scale-105">
                          {item.image ? (
-                           <img src={`http://localhost:8000${item.image}`} alt={item.name} className="h-full w-full object-cover" />
+                           <img src={`${import.meta.env.VITE_API_URL || ''}${item.image}`} alt={item.name} className="h-full w-full object-cover" />
                          ) : (
                            '🍲'
                          )}

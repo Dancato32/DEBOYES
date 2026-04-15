@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: deboyes-backend
+    runtime: python
+    buildCommand: pip install -r requirements.txt && python manage.py migrate && python manage.py collectstatic --no-input
+    startCommand: gunicorn backend.mysite.asgi:application -k uvicorn.workers.UvicornWorker
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DJANGO_SETTINGS_MODULE
+        value: backend.mysite.settings
+      - key: DEBUG
+        value: "False"
+      - fromGroup: deboyes-common

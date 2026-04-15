@@ -39,7 +39,7 @@ const OrderCard = ({ order, navigate, isRider }) => {
               <div className="flex items-center gap-3">
                 <div className="h-6 w-6 rounded-md overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0">
                    {item.image ? (
-                     <img src={`http://localhost:8000${item.image}`} alt={item.food} className="h-full w-full object-cover" />
+                    <img src={`${import.meta.env.VITE_API_URL || ''}${item.image}`} alt={item.food} className="h-full w-full object-cover" />
                    ) : (
                      <span className="text-xs">🍲</span>
                    )}

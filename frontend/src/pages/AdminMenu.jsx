@@ -232,7 +232,7 @@ export default function AdminMenu() {
               <div key={item.id} className="flex items-center gap-4 rounded-3xl bg-brand-cream/50 p-4 border border-[#F0E8D8] hover:border-brand-red/30 transition-all">
                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#E5DFD3] overflow-hidden border border-[#F0E8D8]">
                   {item.image ? (
-                    <img src={`http://localhost:8000${item.image}`} alt={item.name} className="h-full w-full object-cover" />
+                    <img src={`${import.meta.env.VITE_API_URL || ''}${item.image}`} alt={item.name} className="h-full w-full object-cover" />
                   ) : (
                     <span className="text-2xl">🍲</span>
                   )}

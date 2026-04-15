@@ -18,7 +18,7 @@ export default function FoodCard({ food, onAdd, darkMode = false }) {
       {/* Circle Image Container */}
       <div className={`flex h-32 w-32 mx-auto items-center justify-center rounded-full overflow-hidden shrink-0 mt-2 ${darkMode ? 'bg-brand-charcoal' : 'bg-slate-50'}`}>
         {food.image ? (
-          <img src={`http://localhost:8000${food.image}`} alt={food.name} className="h-full w-full object-cover" />
+          <img src={`${import.meta.env.VITE_API_URL || ''}${food.image}`} alt={food.name} className="h-full w-full object-cover" />
         ) : (
           <span className="text-6xl">{getEmoji(food.name)}</span>
         )}

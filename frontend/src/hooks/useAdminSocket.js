@@ -10,12 +10,12 @@ export default function useAdminSocket(onUpdate) {
     const socketUrl = `${protocol}://${window.location.host}/ws/admin/updates/`
     
     const connect = () => {
-      console.log('Connecting to Admin WebSocket...')
+
       const socket = new WebSocket(socketUrl)
       socketRef.current = socket
 
       socket.onopen = () => {
-        console.log('Admin WebSocket connected.')
+
       }
 
       socket.onmessage = (event) => {
@@ -26,7 +26,7 @@ export default function useAdminSocket(onUpdate) {
       }
 
       socket.onclose = () => {
-        console.log('Admin WebSocket disconnected. Reconnecting in 3s...')
+
         setTimeout(connect, 3000)
       }
 
