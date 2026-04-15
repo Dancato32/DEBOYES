@@ -1,0 +1,16 @@
+django>=5.0.0
+channels>=4.0.0
+daphne>=4.0.0
+gunicorn>=21.2.0
+uvicorn[standard]>=0.27.0
+psycopg2-binary>=2.9.9
+dj-database-url>=2.1.0
+whitenoise[compression]>=6.6.0
+django-cors-headers>=4.3.1
+python-dotenv>=1.0.0
+# Add other project dependencies here (from your local environment)
+asgiref
+sqlparse
+typing-extensions
+Pillow
+axios
