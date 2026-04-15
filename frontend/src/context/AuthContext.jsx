@@ -52,7 +52,14 @@ export function AuthProvider({ children }) {
       await authSignup(payload)
       toast.success('Account created!')
       // Automatically log in after successful signup
-      await login({ username: payload.username, password: payload.password })
+      try {
+        await login({ username: payload.username, password: payload.password })
+      } catch (loginError) {
+        // If login fails after signup, don't show "Signup failed" but prompt manual login
+        console.error('Auto-login failed after signup:', loginError)
+        toast.info('Please sign in manually with your new account.')
+        navigate('/login')
+      }
     } catch (error) {
       toast.error(error.response?.data?.error || 'Signup failed')
       throw error
