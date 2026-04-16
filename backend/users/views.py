@@ -13,8 +13,15 @@ def signup(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
+            
+            username = data.get('username')
+            password = data.get('password')
+            user_type = data.get('user_type')
+            
+            if not username or not password or not user_type:
+                return JsonResponse({"error": "Username, password and user type are required"}, status=400)
 
-            if User.objects.filter(username=data['username']).exists():
+            if User.objects.filter(username=username).exists():
                 return JsonResponse({"error": "A user with that username already exists"}, status=400)
 
             email = data.get('email', '').strip()
@@ -22,17 +29,17 @@ def signup(request):
                 return JsonResponse({"error": "A user with that email already exists"}, status=400)
 
             user = User.objects.create(
-                username=data['username'],
-                email=data.get('email', ''),
+                username=username,
+                email=email,
                 phone=data.get('phone', ''),
-                password=make_password(data['password']),
-                user_type=data['user_type']
+                password=make_password(password),
+                user_type=user_type
             )
 
             token = create_token(user)
             return JsonResponse({"message": "User created successfully", "token": token}, status=201)
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
+            return JsonResponse({"error": str(e)}, status=500)
 
 
 # LOGIN
