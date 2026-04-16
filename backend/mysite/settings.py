@@ -65,7 +65,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'backend.mysite.urls'
+ROOT_URLCONF = 'mysite.urls'
 
 TEMPLATES = [
     {
@@ -82,8 +82,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'backend.mysite.wsgi.application'
-ASGI_APPLICATION = 'backend.mysite.asgi.application'
+WSGI_APPLICATION = 'mysite.wsgi.application'
+ASGI_APPLICATION = 'mysite.asgi.application'
 
 CHANNEL_LAYERS = {
     "default": {
