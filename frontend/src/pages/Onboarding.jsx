@@ -12,12 +12,12 @@ export default function Onboarding() {
   const [role, setRole] = useState(null)
 
   useEffect(() => {
-    // Navigate away if they are already logged in
-    if (isAuthenticated && user && step !== 'LOADING') {
+    // Navigate away if they are already logged in — immediate check
+    if (isAuthenticated && user) {
       const dest = user.user_type === 'admin' ? '/admin' : user.user_type === 'rider' ? '/rider' : '/customer'
       navigate(dest, { replace: true })
     }
-  }, [isAuthenticated, user, step, navigate])
+  }, [isAuthenticated, user, navigate])
 
   useEffect(() => {
     // Splash screen timer

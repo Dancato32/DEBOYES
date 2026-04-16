@@ -12,7 +12,6 @@ export default function Signup() {
   
   const [formData, setFormData] = useState({ 
     username: '', 
-    email: '', 
     phone: '',
     password: '', 
     user_type: initialRole 
@@ -21,10 +20,15 @@ export default function Signup() {
 
   // Redirect back to onboarding if they got here directly without an intended role
   useEffect(() => {
+    if (isAuthenticated && user) {
+        const dest = user.user_type === 'admin' ? '/admin' : user.user_type === 'rider' ? '/rider' : '/customer'
+        navigate(dest, { replace: true })
+        return
+    }
     if (!location.state?.role) {
       navigate('/')
     }
-  }, [location, navigate])
+  }, [location, navigate, isAuthenticated, user])
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -65,16 +69,7 @@ export default function Signup() {
               required
             />
           </label>
-          <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest font-inter">
-            Email (Optional)
-            <input
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="mt-3 w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 font-inter text-sm focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
-            />
-          </label>
+
           <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest font-inter">
             Phone Number
             <input

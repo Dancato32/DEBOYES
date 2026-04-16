@@ -17,7 +17,8 @@ def signup(request):
             if User.objects.filter(username=data['username']).exists():
                 return JsonResponse({"error": "A user with that username already exists"}, status=400)
 
-            if User.objects.filter(email=data['email']).exists():
+            email = data.get('email', '').strip()
+            if email and User.objects.filter(email=email).exists():
                 return JsonResponse({"error": "A user with that email already exists"}, status=400)
 
             user = User.objects.create(
