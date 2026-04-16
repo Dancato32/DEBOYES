@@ -13,3 +13,5 @@ sqlparse
 typing-extensions
 Pillow
 PyJWT>=2.8.0
+cloudinary>=1.38.0
+django-cloudinary-storage>=0.9.12

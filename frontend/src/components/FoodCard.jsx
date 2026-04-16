@@ -27,7 +27,7 @@ export default function FoodCard({ food, onAdd, darkMode = false }) {
 
         {food.image ? (
           <img 
-            src={`${import.meta.env.VITE_API_URL || ''}${food.image}`} 
+            src={food.image.startsWith('http') ? food.image : `${import.meta.env.VITE_API_URL || ''}${food.image}`} 
             alt={food.name} 
             loading="lazy"
             onLoad={() => setIsLoaded(true)}
