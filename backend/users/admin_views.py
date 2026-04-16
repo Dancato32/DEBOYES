@@ -121,16 +121,30 @@ def manage_menu(request, item_id=None):
         data = request.POST
         image = request.FILES.get('image')
         
-        item = FoodItem.objects.create(
-            name=data.get('name'),
-            category=data.get('category', 'General'),
-            description=data.get('description', ''),
-            price=data.get('price'),
-            image=image,
-            is_available=True
-        )
-        broadcast_admin_update("MENU_UPDATED", {"action": "ADD", "item_name": item.name})
-        return JsonResponse({"message": "Item added successfully", "id": item.id})
+        name = data.get('name')
+        price = data.get('price')
+        
+        if not name or not price:
+            return JsonResponse({"error": "Name and Price are required"}, status=400)
+            
+        try:
+            # Clean price string and convert to float
+            clean_price = float(price.replace('₵', '').replace(',', '').strip())
+            
+            item = FoodItem.objects.create(
+                name=name,
+                category=data.get('category') or 'General',
+                description=data.get('description', ''),
+                price=clean_price,
+                image=image,
+                is_available=True
+            )
+            broadcast_admin_update("MENU_UPDATED", {"action": "ADD", "item_name": item.name})
+            return JsonResponse({"message": "Item added successfully", "id": item.id})
+        except ValueError:
+            return JsonResponse({"error": "Invalid price format"}, status=400)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
     
     if request.method == "DELETE":
         try:
