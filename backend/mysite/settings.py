@@ -146,13 +146,21 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Required for django-cloudinary-storage compatibility with modern Django
 STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
 
-# Use WhiteNoise for static
-# Dynamic Storage: Use Cloudinary if keys are present, otherwise local filesystem
-CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME')
-CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY')
-CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET')
+# Dynamic Storage: Use Cloudinary ONLY if valid keys are present
+CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', '').strip()
+CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', '').strip()
+CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', '').strip()
 
-if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
+# Check if keys exist and aren't placeholders like "Root" or "your_"
+IS_CLOUDINARY_CONFIGURED = (
+    CLOUDINARY_CLOUD_NAME and 
+    CLOUDINARY_API_KEY and 
+    CLOUDINARY_API_SECRET and 
+    CLOUDINARY_CLOUD_NAME.lower() not in ['root', 'none', 'null', ''] and
+    not CLOUDINARY_CLOUD_NAME.startswith('your_')
+)
+
+if IS_CLOUDINARY_CONFIGURED:
     STORAGES = {
         "default": {
             "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
