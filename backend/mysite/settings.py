@@ -52,10 +52,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # Must be first to handle CORS preflight
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # WhiteNoise middleware should be after SecurityMiddleware
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -159,23 +159,27 @@ STORAGES = {
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# CORS Settings
-CORS_ALLOWED_ORIGINS = [o.strip('/') for o in os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:5173').split(',')]
+# CORS Settings — cross-domain (Railway frontend <-> Render backend)
+CORS_ALLOWED_ORIGINS = [o.strip().strip('/') for o in os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:5173').split(',')]
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = False
 
 # CSRF Settings
-CSRF_TRUSTED_ORIGINS = [o.strip('/') for o in os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173').split(',')]
+CSRF_TRUSTED_ORIGINS = [o.strip().strip('/') for o in os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173').split(',')]
+
+# Session & Cookie settings — required for cross-domain auth (SameSite=None + Secure)
+# These must always be set so Railway can receive session cookies from Render
+SESSION_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
 
 # Production Security Headers
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SESSION_COOKIE_SAMESITE = 'None'
-    CSRF_COOKIE_SAMESITE = 'None'
-    SECURE_HSTS_SECONDS = 31536000 # 1 year
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
-
