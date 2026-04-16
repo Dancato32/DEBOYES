@@ -2,6 +2,7 @@ import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import Onboarding from './pages/Onboarding'
 import CustomerDashboard from './pages/CustomerDashboard'
 import RiderDashboard from './pages/RiderDashboard'
 import TrackOrder from './pages/TrackOrder'
@@ -43,7 +44,7 @@ export default function App() {
   const { user, loading } = useAuth()
   
   const isAdminPath = location.pathname.startsWith('/admin')
-  const isMobileLayoutPath = location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/customer' || location.pathname === '/checkout' || location.pathname === '/history' || location.pathname === '/profile' || location.pathname.startsWith('/rider') || location.pathname.startsWith('/track')
+  const isMobileLayoutPath = location.pathname === '/' || location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/customer' || location.pathname === '/checkout' || location.pathname === '/history' || location.pathname === '/profile' || location.pathname.startsWith('/rider') || location.pathname.startsWith('/track')
   const hideNavbar = isMobileLayoutPath
 
   // Block rendering until the session check resolves — prevents
@@ -77,7 +78,7 @@ export default function App() {
         {!hideNavbar && <Navbar />}
         <main className={`flex-1 overflow-y-auto ${isAdminPath ? 'no-scrollbar p-10' : (!isMobileLayoutPath ? 'px-4 py-6 sm:px-6 lg:px-8' : '')}`}>
           <Routes>
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/" element={<Onboarding />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route

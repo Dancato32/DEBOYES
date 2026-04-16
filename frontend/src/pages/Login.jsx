@@ -68,7 +68,7 @@ export default function Login() {
 
         <div className="text-center text-sm text-slate-500 font-inter font-medium tracking-tight">
           New here?{' '}
-          <Link to="/signup" className="font-bold text-white hover:text-brand-red underline decoration-brand-red/30 underline-offset-4">
+          <Link to="/" className="font-bold text-white hover:text-brand-red underline decoration-brand-red/30 underline-offset-4">
             Create an account
           </Link>
         </div>

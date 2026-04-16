@@ -22,7 +22,8 @@ def signup(request):
 
             user = User.objects.create(
                 username=data['username'],
-                email=data['email'],
+                email=data.get('email', ''),
+                phone=data.get('phone', ''),
                 password=make_password(data['password']),
                 user_type=data['user_type']
             )

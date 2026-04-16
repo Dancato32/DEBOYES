@@ -1,11 +1,30 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 export default function Signup() {
   const { signup } = useAuth()
-  const [formData, setFormData] = useState({ username: '', email: '', password: '', user_type: 'customer' })
+  const location = useLocation()
+  const navigate = useNavigate()
+  
+  // Default to customer, but ideally we get this from the onboarding flow
+  const initialRole = location.state?.role || 'customer'
+  
+  const [formData, setFormData] = useState({ 
+    username: '', 
+    email: '', 
+    phone: '',
+    password: '', 
+    user_type: initialRole 
+  })
   const [loading, setLoading] = useState(false)
+
+  // Redirect back to onboarding if they got here directly without an intended role
+  useEffect(() => {
+    if (!location.state?.role) {
+      navigate('/')
+    }
+  }, [location, navigate])
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -47,11 +66,21 @@ export default function Signup() {
             />
           </label>
           <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest font-inter">
-            Email
+            Email (Optional)
             <input
               name="email"
               type="email"
               value={formData.email}
+              onChange={handleChange}
+              className="mt-3 w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 font-inter text-sm focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
+            />
+          </label>
+          <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest font-inter">
+            Phone Number
+            <input
+              name="phone"
+              type="tel"
+              value={formData.phone}
               onChange={handleChange}
               className="mt-3 w-full rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 font-inter text-sm focus:border-brand-red focus:outline-none focus:ring-1 focus:ring-brand-red"
               required
@@ -68,21 +97,7 @@ export default function Signup() {
               required
             />
           </label>
-          <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest font-inter">
-            Role
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              {['customer', 'rider'].map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setFormData((current) => ({ ...current, user_type: type }))}
-                  className={`rounded-2xl border px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-all font-inter ${formData.user_type === type ? 'border-brand-red bg-brand-red text-white' : 'border-slate-700 bg-slate-900 text-slate-400 hover:border-slate-600'}`}
-                >
-                  {type === 'customer' ? 'Customer' : 'Rider'}
-                </button>
-              ))}
-            </div>
-          </label>
+
           <button
             type="submit"
             disabled={loading}
@@ -93,8 +108,8 @@ export default function Signup() {
         </form>
 
         <p className="text-center text-sm text-slate-500 font-inter font-medium tracking-tight">
-          Have an account?{' '}
-          <Link to="/login" className="font-bold text-white hover:text-brand-red underline decoration-brand-red/30 underline-offset-4">
+          Already have an account?{' '}
+          <Link to="/" className="font-bold text-white hover:text-brand-red underline decoration-brand-red/30 underline-offset-4">
             Sign in
           </Link>
         </p>
