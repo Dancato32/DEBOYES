@@ -144,7 +144,7 @@ STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Required for django-cloudinary-storage compatibility with modern Django
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
 
 # Use WhiteNoise for static, Cloudinary for media
 STORAGES = {
@@ -155,8 +155,6 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.StaticFilesStorage",
     },
 }
-
-WHITENOISE_MANIFEST_STRICT = False
 
 # Cloudinary Configuration
 CLOUDINARY_STORAGE = {
