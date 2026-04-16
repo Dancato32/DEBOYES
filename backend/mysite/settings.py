@@ -143,6 +143,9 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# Required for django-cloudinary-storage compatibility with modern Django
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 # Use WhiteNoise for static, Cloudinary for media
 STORAGES = {
     "default": {
