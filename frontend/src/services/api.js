@@ -65,9 +65,12 @@ export const fetchAdminStats = () => api.get('auth/admin/stats/')
 export const fetchAdminOrders = (status) => api.get('auth/admin/orders/', { params: { status } })
 export const fetchAdminRiders = () => api.get('auth/admin/riders/')
 export const fetchAdminRevenue = () => api.get('auth/admin/revenue/')
-export const manageAdminMenu = (formData) => api.post('auth/admin/menu/', formData, {
-  headers: { 'Content-Type': 'multipart/form-data' }
-})
+export const manageAdminMenu = (formData, id) => {
+  const url = id ? `auth/admin/menu/${id}/` : 'auth/admin/menu/'
+  return api.post(url, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+}
 export const fetchAdminMenu = () => api.get('auth/admin/menu/')
 export const deleteMenuItem = (id) => api.delete(`auth/admin/menu/${id}/`)
 export const fetchAdminCustomers = () => api.get('auth/admin/customers/')

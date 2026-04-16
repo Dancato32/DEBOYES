@@ -3,7 +3,7 @@ services:
     name: deboyes-backend
     runtime: python
     buildCommand: cd backend && pip install -r requirements.txt && python manage.py migrate && python manage.py collectstatic --no-input
-    startCommand: gunicorn backend.mysite.asgi:application -k uvicorn.workers.UvicornWorker
+    startCommand: cd backend && gunicorn mysite.asgi:application -k uvicorn.workers.UvicornWorker
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9

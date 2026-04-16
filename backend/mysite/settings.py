@@ -193,7 +193,7 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = False
 
 # CSRF Settings
-CSRF_TRUSTED_ORIGINS = [o.strip().strip('/') for o in os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173').split(',')]
+CSRF_TRUSTED_ORIGINS = [o.strip().strip('/') for o in os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:5173,https://frontend-production-b947.up.railway.app').split(',')]
 
 # Session & Cookie settings — required for cross-domain auth (SameSite=None + Secure)
 # These must always be set so Railway can receive session cookies from Render

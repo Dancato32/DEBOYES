@@ -129,18 +129,43 @@ def manage_menu(request, item_id=None):
             
         try:
             # Clean price string and convert to float
-            clean_price = float(price.replace('₵', '').replace(',', '').strip())
+            clean_price = float(str(price).replace('₵', '').replace(',', '').strip())
             
-            item = FoodItem.objects.create(
-                name=name,
-                category=data.get('category') or 'General',
-                description=data.get('description', ''),
-                price=clean_price,
-                image=image,
-                is_available=True
-            )
-            broadcast_admin_update("MENU_UPDATED", {"action": "ADD", "item_name": item.name})
-            return JsonResponse({"message": "Item added successfully", "id": item.id})
+            if item_id:
+                # UPDATE EXISTING
+                item = FoodItem.objects.get(id=item_id)
+                item.name = name
+                item.category = data.get('category') or 'General'
+                item.description = data.get('description', '')
+                item.price = clean_price
+                
+                if image:
+                    # Cleanup old image if it exists and we're replacing it
+                    if item.image:
+                        try:
+                            item.image.delete(save=False)
+                        except Exception:
+                            pass
+                    item.image = image
+                
+                item.save()
+                broadcast_admin_update("MENU_UPDATED", {"action": "UPDATE", "item_name": item.name})
+                return JsonResponse({"message": "Item updated successfully", "id": item.id})
+            else:
+                # CREATE NEW
+                item = FoodItem.objects.create(
+                    name=name,
+                    category=data.get('category') or 'General',
+                    description=data.get('description', ''),
+                    price=clean_price,
+                    image=image,
+                    is_available=True
+                )
+                broadcast_admin_update("MENU_UPDATED", {"action": "ADD", "item_name": item.name})
+                return JsonResponse({"message": "Item added successfully", "id": item.id})
+                
+        except FoodItem.DoesNotExist:
+            return JsonResponse({"error": "Item not found"}, status=404)
         except ValueError:
             return JsonResponse({"error": "Invalid price format"}, status=400)
         except Exception as e:

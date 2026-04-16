@@ -10,6 +10,7 @@ export default function AdminMenu() {
   const fileInputRef = useRef(null)
   const [imagePreview, setImagePreview] = useState(null)
   const [isCustomCategory, setIsCustomCategory] = useState(false)
+  const [editingItem, setEditingItem] = useState(null)
   
   const [formData, setFormData] = useState({
     name: '',
@@ -51,6 +52,28 @@ export default function AdminMenu() {
     }
   }
 
+  const handleEditClick = (item) => {
+    setEditingItem(item)
+    setFormData({
+      name: item.name,
+      price: item.price,
+      category: item.category,
+      description: item.description || '',
+      image: null // We don't populate the file input with existing image
+    })
+    setImagePreview(item.image ? (item.image.startsWith('http') ? item.image : `${import.meta.env.VITE_API_URL || ''}${item.image}`) : null)
+    setIsCustomCategory(!categories.includes(item.category))
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const resetForm = () => {
+    setFormData({ name: '', price: '', category: categories.length > 0 ? categories[0] : '', description: '', image: null })
+    setEditingItem(null)
+    setImagePreview(null)
+    setIsCustomCategory(false)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this item?')) return
     try {
@@ -77,16 +100,13 @@ export default function AdminMenu() {
     }
 
     try {
-      await manageAdminMenu(data)
-      toast.success('Successfully added to menu')
-      setFormData({ name: '', price: '', category: categories.length > 0 ? categories[0] : '', description: '', image: null })
-      setImagePreview(null)
-      setIsCustomCategory(false)
-      if (fileInputRef.current) fileInputRef.current.value = ''
+      await manageAdminMenu(data, editingItem?.id)
+      toast.success(editingItem ? 'Item updated successfully' : 'Successfully added to menu')
+      resetForm()
       loadMenu()
     } catch (error) {
-      console.error('Add item error:', error)
-      toast.error('Failed to add item: ' + (error.response?.data?.error || error.message))
+      console.error('Submit item error:', error)
+      toast.error(`Failed to ${editingItem ? 'update' : 'add'} item: ` + (error.response?.data?.error || error.message))
     } finally {
       setSubmitting(false)
     }
@@ -112,7 +132,19 @@ export default function AdminMenu() {
       <div className="grid gap-10 lg:grid-cols-[1.5fr_1fr]">
         {/* Add New Item Form */}
         <section className="rounded-[2.5rem] bg-white p-8 shadow-soft border border-[#F0E8D8]">
-          <h2 className="text-lg font-bold font-poppins text-brand-deep-dark uppercase tracking-wide">Add new item</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold font-poppins text-brand-deep-dark uppercase tracking-wide">
+                {editingItem ? 'Edit item' : 'Add new item'}
+            </h2>
+            {editingItem && (
+               <button 
+                 onClick={resetForm}
+                 className="text-[10px] font-black uppercase text-brand-charcoal/40 hover:text-brand-red transition-colors"
+                >
+                 Cancel Edit
+               </button>
+            )}
+          </div>
           <form onSubmit={handleSubmit} className="mt-8 space-y-6 text-left">
             <div className="space-y-2">
               <label className="text-[10px] font-bold uppercase tracking-widest text-brand-charcoal/60 pl-2">Item photo</label>
@@ -213,9 +245,9 @@ export default function AdminMenu() {
               <button 
                 type="submit"
                 disabled={submitting}
-                className="self-end h-[54px] rounded-2xl bg-brand-red font-black text-white shadow-lg shadow-brand-red/20 hover:bg-brand-dark-red active:scale-95 transition-all disabled:opacity-50"
+                className={`self-end h-[54px] rounded-2xl font-black text-white shadow-lg transition-all active:scale-95 disabled:opacity-50 ${editingItem ? 'bg-brand-deep-dark shadow-brand-deep-dark/20 hover:bg-slate-800' : 'bg-brand-red shadow-brand-red/20 hover:bg-brand-dark-red'}`}
               >
-                {submitting ? 'Adding...' : '+ Add to menu'}
+                {submitting ? (editingItem ? 'Updating...' : 'Adding...') : (editingItem ? 'Save Changes' : '+ Add to menu')}
               </button>
             </div>
           </form>
@@ -249,12 +281,20 @@ export default function AdminMenu() {
                   </div>
                   <p className="mt-0.5 text-[10px] font-black text-brand-charcoal uppercase tracking-widest">₵{item.price}</p>
                 </div>
-                <button 
-                  onClick={() => handleDelete(item.id)}
-                  className="h-9 w-9 flex items-center justify-center rounded-xl bg-brand-red/10 text-brand-red hover:bg-brand-red hover:text-white transition-all active:scale-90"
-                >
-                  ✕
-                </button>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => handleEditClick(item)}
+                    className="h-9 w-9 flex items-center justify-center rounded-xl bg-brand-deep-dark/10 text-brand-deep-dark hover:bg-brand-deep-dark hover:text-white transition-all active:scale-90"
+                  >
+                    ✏️
+                  </button>
+                  <button 
+                    onClick={() => handleDelete(item.id)}
+                    className="h-9 w-9 flex items-center justify-center rounded-xl bg-brand-red/10 text-brand-red hover:bg-brand-red hover:text-white transition-all active:scale-90"
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
             ))}
           </div>
