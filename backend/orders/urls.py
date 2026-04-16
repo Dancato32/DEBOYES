@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import (
     place_order,
+    get_delivery_fee,
     get_available_riders,
     accept_order,
     update_status,
@@ -20,6 +21,7 @@ from .views import (
 
 urlpatterns = [
     path('place/', place_order),
+    path('estimate-fee/', get_delivery_fee),
     path('riders/', get_available_riders),
     path('accept/<int:order_id>/', accept_order),
     path('update/<int:order_id>/', update_status),

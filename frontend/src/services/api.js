@@ -39,6 +39,7 @@ export const getCurrentUser = () => api.get('auth/me/')
 
 // Menu & Orders
 export const fetchMenu = () => api.get('menu/')
+export const estimateFee = (payload) => api.post('orders/estimate-fee/', payload)
 export const placeOrder = (payload) => api.post('orders/place/', payload)
 export const fetchAvailableRiders = (area) => api.get('orders/riders/', { params: { area } })
 export const acceptOrder = (orderId) => api.post(`orders/accept/${orderId}/`)

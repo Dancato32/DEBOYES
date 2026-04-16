@@ -70,6 +70,8 @@ def get_all_orders(request):
             "customer": o.customer.get_full_name() or o.customer.username,
             "items": ", ".join([f"{item.food.name} × {item.quantity}" for item in o.items.all()]),
             "total": str(o.total_price),
+            "delivery_fee": str(o.delivery_fee),
+            "delivery_zone": o.delivery_zone_name or "N/A",
             "status": o.status.replace('_', ' ').title(),
             "date": o.created_at.strftime('%Y-%m-%d'),
             "time": o.created_at.strftime('%H:%M:%S'),

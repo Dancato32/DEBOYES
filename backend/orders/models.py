@@ -47,6 +47,8 @@ class Order(models.Model):
     stop_number = models.PositiveIntegerField(default=0)
 
     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    delivery_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    delivery_zone_name = models.CharField(max_length=100, blank=True, null=True)
 
     # Proximity & Priority
     lat = models.FloatField(null=True, blank=True)
@@ -59,6 +61,16 @@ class Order(models.Model):
     assigned_at = models.DateTimeField(null=True, blank=True)
     picked_up_at = models.DateTimeField(null=True, blank=True)
     delivered_at = models.DateTimeField(null=True, blank=True)
+
+
+class DeliveryZone(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    lat = models.FloatField(help_text="Typical center Latitude of this zone")
+    lng = models.FloatField(help_text="Typical center Longitude of this zone")
+
+    def __str__(self):
+        return f"{self.name} (GH {self.price})"
 
 
 class OrderItem(models.Model):

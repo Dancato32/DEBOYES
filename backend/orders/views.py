@@ -217,6 +217,24 @@ def auto_assign_rider(order):
         rider.save()
 
 
+from .utils import calculate_delivery_fee
+
+# GET ESTIMATED DELIVERY FEE
+@csrf_exempt
+@token_required
+def get_delivery_fee(request):
+    try:
+        data = json.loads(request.body)
+        lat = data.get('lat')
+        lng = data.get('lng')
+        area = data.get('area', '')
+        
+        fee, zone_name = calculate_delivery_fee(lat, lng, area)
+        return JsonResponse({"fee": fee, "zone": zone_name})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+
+
 # PLACE ORDER
 @csrf_exempt
 @token_required
@@ -225,27 +243,47 @@ def place_order(request):
         return JsonResponse({"error": "Only customers allowed"}, status=403)
 
     data = json.loads(request.body)
+    
+    # Backend-driven fee calculation to ensure integrity
+    lat = data.get('lat')
+    lng = data.get('lng')
+    area = data.get('area', '')
+    
+    fee, zone_name = calculate_delivery_fee(lat, lng, area)
 
+    # Initial order creation
     order = Order.objects.create(
         customer=request.user,
         address=data['address'],
-        area=data['area'],
-        total_price=data['total_price'],
-        lat=data.get('lat'),
-        lng=data.get('lng'),
+        area=area,
+        delivery_fee=fee,
+        delivery_zone_name=zone_name,
+        lat=lat,
+        lng=lng,
         restaurant_lat=data.get('restaurant_lat', 5.6037),
         restaurant_lng=data.get('restaurant_lng', -0.1870)
     )
 
     items = data.get('items', [])
+    food_total = 0
     for item in items:
         food = FoodItem.objects.get(id=item['food_id'])
-        OrderItem.objects.create(order=order, food=food, quantity=item.get('qty', 1))
+        qty = int(item.get('qty', 1))
+        OrderItem.objects.create(order=order, food=food, quantity=qty)
+        food_total += (float(food.price) * qty)
+
+    # Finalize total price (Food + Delivery)
+    order.total_price = food_total + float(fee)
+    order.save()
 
     # Order starts as 'new' — admin must confirm it before riders can see/accept it
-    # No auto-assignment or rider selection at this stage anymore
     broadcast_admin_update("ORDER_PLACED", {"order_id": order.id})
-    return JsonResponse({"message": "Order placed", "order_id": order.id})
+    return JsonResponse({
+        "message": "Order placed", 
+        "order_id": order.id,
+        "delivery_fee": fee,
+        "total_price": order.total_price
+    })
 
 
 # GET AVAILABLE RIDERS

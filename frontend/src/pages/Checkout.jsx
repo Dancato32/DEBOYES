@@ -20,8 +20,11 @@ export default function Checkout() {
   const mapInstanceRef = useRef(null)
   const markerRef = useRef(null)
 
-  const deliveryFee = 2.00
-  const grandTotal = total > 0 ? total + deliveryFee : 0
+  const [deliveryFee, setDeliveryFee] = useState(0)
+  const [feeZone, setFeeZone] = useState('')
+  const [calculatingFee, setCalculatingFee] = useState(false)
+
+  const grandTotal = total > 0 ? total + (deliveryFee || 0) : 0
 
   // Reverse geocode coords → address using Nominatim (free, no API key)
   const reverseGeocode = async (lat, lng) => {
@@ -145,6 +148,32 @@ export default function Checkout() {
     }
   }, [coords, showMap])
 
+  // Fetch delivery fee from backend when location changes
+  useEffect(() => {
+    const updateFee = async () => {
+      if (!coords && !area) return
+      setCalculatingFee(true)
+      try {
+        const res = await import('../services/api').then(m => m.estimateFee({
+          lat: coords?.lat,
+          lng: coords?.lng,
+          area: area
+        }))
+        setDeliveryFee(res.data.fee)
+        setFeeZone(res.data.zone)
+      } catch (err) {
+        console.error('Fee estimation failed:', err)
+        setDeliveryFee(20.00) // Safe fallback
+        setFeeZone('General')
+      } finally {
+        setCalculatingFee(false)
+      }
+    }
+
+    const timer = setTimeout(updateFee, 500) // Debounce
+    return () => clearTimeout(timer)
+  }, [coords, area])
+
   // Cleanup map on unmount
   useEffect(() => {
     return () => {
@@ -175,6 +204,8 @@ export default function Checkout() {
         address,
         area,
         total_price: grandTotal.toFixed(2),
+        lat: coords?.lat,
+        lng: coords?.lng,
         items: cartItems.map(item => ({
           food_id: item.food_id,
           qty: item.qty
@@ -351,9 +382,18 @@ export default function Checkout() {
                    <span className="text-slate-800 font-black">₵{total.toFixed(2)}</span>
                  </div>
                  <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-[0.2em] font-inter">
-                   <span>Delivery Service</span>
-                   <span className="text-emerald-500 font-black">₵{deliveryFee.toFixed(2)}</span>
-                 </div>
+                    <div className="flex items-center gap-2">
+                      <span>Delivery Service</span>
+                      {feeZone && (
+                        <span className="bg-brand-cream text-brand-charcoal/60 px-2 py-0.5 rounded-lg text-[8px] font-black border border-[#F0E8D8]">
+                          {feeZone}
+                        </span>
+                      )}
+                    </div>
+                    <span className={`${calculatingFee ? 'animate-pulse opacity-40' : 'text-emerald-500'} font-black`}>
+                      ₵{deliveryFee.toFixed(2)}
+                    </span>
+                  </div>
                  <div className="border-t-2 border-brand-cream pt-6 flex items-center justify-between">
                    <span className="text-lg font-black text-brand-deep-dark font-poppins tracking-tighter uppercase underline decoration-brand-red/30 decoration-4">Grand Total</span>
                    <span className="text-3xl font-black font-poppins text-brand-red tracking-tighter animate-pulse">₵{grandTotal.toFixed(2)}</span>
