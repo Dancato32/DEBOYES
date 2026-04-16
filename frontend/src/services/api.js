@@ -2,10 +2,18 @@ import axios from 'axios'
 
 const api = axios.create({
   baseURL: `${import.meta.env.VITE_API_URL || ''}/api/`,
-  withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
   }
+})
+
+// Attach JWT to every request
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('authToken')
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`
+  }
+  return config
 })
 
 // Error handling interceptor
@@ -13,7 +21,6 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const message = error.response?.data?.error || error.response?.data?.detail || 'An unexpected error occurred'
-    // You could import toast here if needed, but for now we'll just log and reject
     console.error('API Error:', message)
     return Promise.reject(error)
   }

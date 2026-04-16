@@ -2,7 +2,6 @@ import json
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -11,10 +10,12 @@ from django.utils import timezone
 from .models import Order, OrderItem, DeliveryBatch, OrderMessage
 from . import services
 from menu.models import FoodItem
+from users.auth import token_required
 
 User = get_user_model()
 
-@login_required
+@csrf_exempt
+@token_required
 def get_order_messages(request, order_id):
     try:
         order = Order.objects.get(id=order_id)
@@ -39,8 +40,8 @@ def get_order_messages(request, order_id):
     except Order.DoesNotExist:
         return JsonResponse({"error": "Order not found"}, status=404)
 
-@login_required
 @csrf_exempt
+@token_required
 def send_order_message(request, order_id):
     try:
         order = Order.objects.get(id=order_id)
@@ -98,8 +99,8 @@ def send_order_message(request, order_id):
     except Order.DoesNotExist:
         return JsonResponse({"error": "Order not found"}, status=404)
 
-@login_required
 @csrf_exempt
+@token_required
 def mark_messages_as_read(request, order_id):
     try:
         order = Order.objects.get(id=order_id)
@@ -217,8 +218,8 @@ def auto_assign_rider(order):
 
 
 # PLACE ORDER
-@login_required
 @csrf_exempt
+@token_required
 def place_order(request):
     if not request.user.is_customer():
         return JsonResponse({"error": "Only customers allowed"}, status=403)
@@ -248,7 +249,8 @@ def place_order(request):
 
 
 # GET AVAILABLE RIDERS
-@login_required
+@csrf_exempt
+@token_required
 def get_available_riders(request):
     if not request.user.is_customer():
         return JsonResponse({"error": "Only customers allowed"}, status=403)
@@ -274,8 +276,8 @@ def get_available_riders(request):
 
 
 # RIDER ACCEPTS ORDER (Classic Single-Order Flow)
-@login_required
 @csrf_exempt
+@token_required
 def accept_order(request, order_id):
     if not request.user.is_rider():
         return JsonResponse({"error": "Only riders allowed"}, status=403)
@@ -336,8 +338,8 @@ def accept_order(request, order_id):
     return JsonResponse({"message": "Order accepted"})
 
 # RIDER ACCEPTS BATCH (SUPER ORDER)
-@login_required
 @csrf_exempt
+@token_required
 def accept_batch(request, batch_id):
     if not request.user.is_rider():
         return JsonResponse({"error": "Only riders allowed"}, status=403)
@@ -363,7 +365,8 @@ def accept_batch(request, batch_id):
     return JsonResponse({"message": "Batch accepted", "batch_id": batch.id})
 
 # GET AVAILABLE BATCHES
-@login_required
+@csrf_exempt
+@token_required
 def get_available_batches(request):
     if not request.user.is_rider():
         return JsonResponse({"error": "Only riders allowed"}, status=403)
@@ -381,7 +384,8 @@ def get_available_batches(request):
     return JsonResponse({"batches": data})
 
 # GET BATCH DETAILS
-@login_required
+@csrf_exempt
+@token_required
 def get_batch_details(request, batch_id):
     try:
         batch = DeliveryBatch.objects.prefetch_related('orders__items__food').get(id=batch_id)
@@ -408,8 +412,8 @@ def get_batch_details(request, batch_id):
 
 
 # CONFIRM A SPECIFIC STOP IN A BATCH
-@login_required
 @csrf_exempt
+@token_required
 def confirm_batch_stop(request, batch_id, order_id):
     if not request.user.is_rider():
         return JsonResponse({"error": "Only riders allowed"}, status=403)
@@ -451,8 +455,8 @@ def confirm_batch_stop(request, batch_id, order_id):
         return JsonResponse({"error": "Batch or Order not found"}, status=404)
 
 # RIDER STARTS TRIP (Self-confirm pickup at restaurant)
-@login_required
 @csrf_exempt
+@token_required
 def start_batch_trip(request, batch_id):
     """Rider confirms they have picked up ALL orders from the restaurant.
     Transitions every 'assigned' order in the batch to 'on_the_way'."""
@@ -502,8 +506,8 @@ def start_batch_trip(request, batch_id):
 
 
 # UPDATE STATUS
-@login_required
 @csrf_exempt
+@token_required
 def update_status(request, order_id):
     if not request.user.is_rider():
         return JsonResponse({"error": "Only riders allowed"}, status=403)
@@ -535,7 +539,8 @@ def update_status(request, order_id):
     return JsonResponse({"message": "Status updated"})
 
 
-@login_required
+@csrf_exempt
+@token_required
 def assigned_orders(request):
     if not request.user.is_rider():
         return JsonResponse({"error": "Only riders allowed"}, status=403)
@@ -570,7 +575,8 @@ def assigned_orders(request):
     return JsonResponse({'orders': data})
 
 
-@login_required
+@csrf_exempt
+@token_required
 def pending_orders(request):
     if not request.user.is_rider():
         return JsonResponse({"error": "Only riders allowed"}, status=403)
@@ -604,7 +610,8 @@ def pending_orders(request):
 
 
 
-@login_required
+@csrf_exempt
+@token_required
 def track_order(request, order_id):
     order = Order.objects.select_related('rider', 'batch').prefetch_related('items__food').get(id=order_id, customer=request.user)
 
@@ -641,7 +648,8 @@ def track_order(request, order_id):
         "batch_info": batch_info
     })
 
-@login_required
+@csrf_exempt
+@token_required
 def get_history(request):
     if request.user.is_rider():
         orders = Order.objects.filter(rider=request.user, status='delivered').prefetch_related('items__food').order_by('-delivered_at')

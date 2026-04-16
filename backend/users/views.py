@@ -1,9 +1,9 @@
 import json
 from django.http import JsonResponse
-from django.contrib.auth import get_user_model, authenticate, login, logout
+from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
+from .auth import create_token, token_required
 
 User = get_user_model()
 
@@ -13,11 +13,10 @@ def signup(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-            
-            # Basic validation
+
             if User.objects.filter(username=data['username']).exists():
                 return JsonResponse({"error": "A user with that username already exists"}, status=400)
-            
+
             if User.objects.filter(email=data['email']).exists():
                 return JsonResponse({"error": "A user with that email already exists"}, status=400)
 
@@ -28,47 +27,49 @@ def signup(request):
                 user_type=data['user_type']
             )
 
-            return JsonResponse({"message": "User created successfully"}, status=201)
+            token = create_token(user)
+            return JsonResponse({"message": "User created successfully", "token": token}, status=201)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
+
 
 # LOGIN
 @csrf_exempt
 def login_view(request):
     if request.method == "POST":
-        data = json.loads(request.body)
+        try:
+            data = json.loads(request.body)
+        except Exception:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
 
         user = authenticate(
-            username=data['username'],
-            password=data['password']
+            username=data.get('username', ''),
+            password=data.get('password', '')
         )
 
         if user:
-            login(request, user)
-            return JsonResponse({"message": "Login successful"})
+            token = create_token(user)
+            return JsonResponse({"message": "Login successful", "token": token})
 
         return JsonResponse({"error": "Invalid credentials"}, status=400)
 
-# LOGOUT
+
+# LOGOUT — stateless, client just discards the token
 @csrf_exempt
 def logout_view(request):
-    logout(request)
     return JsonResponse({"message": "Logged out"})
 
+
 # CURRENT USER
+@csrf_exempt
+@token_required
 def current_user(request):
-    if not request.user.is_authenticated:
-        return JsonResponse({"error": "Not authenticated"}, status=401)
-    
     from django.utils import timezone
     from orders.models import Order
-    
-    # Calculate Active Days
+
     active_days = (timezone.now().date() - request.user.date_joined.date()).days + 1
-    
-    # Calculate Membership Status based on orders
     order_count = Order.objects.filter(customer=request.user, status='delivered').count()
-    
+
     membership_status = "Bronze"
     if order_count > 50:
         membership_status = "Diamond"
@@ -76,7 +77,7 @@ def current_user(request):
         membership_status = "Gold"
     elif order_count > 5:
         membership_status = "Silver"
-        
+
     return JsonResponse({
         'user': {
             'id': request.user.id,
@@ -91,9 +92,10 @@ def current_user(request):
         }
     })
 
+
 # TOGGLE RIDER AVAILABILITY
 @csrf_exempt
-@login_required
+@token_required
 def toggle_availability(request):
     if not request.user.is_rider():
         return JsonResponse({"error": "Only riders allowed"}, status=403)
@@ -116,31 +118,31 @@ def toggle_availability(request):
                 "data": {"event": "RIDER_STATUS_CHANGE", "payload": {"username": request.user.username, "status": "Online" if is_available else "Offline"}}
             }
         )
-    except:
+    except Exception:
         pass
 
     return JsonResponse({"message": "Availability updated", "is_available": is_available})
 
+
 # RIDER STATS
-@login_required
+@csrf_exempt
+@token_required
 def rider_stats(request):
     if not request.user.is_rider():
         return JsonResponse({"error": "Only riders allowed"}, status=403)
-    
+
     from django.db.models import Sum
     from orders.models import Order
     import datetime
 
     today = datetime.date.today()
-    
-    # Calculate today's earnings
+
     today_earnings = Order.objects.filter(
-        rider=request.user, 
-        status='delivered', 
+        rider=request.user,
+        status='delivered',
         delivered_at__date=today
     ).aggregate(total=Sum('total_price'))['total'] or 0
 
-    # Calculate total deliveries
     total_deliveries = Order.objects.filter(
         rider=request.user,
         status='delivered'

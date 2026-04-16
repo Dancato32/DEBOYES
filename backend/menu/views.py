@@ -1,9 +1,9 @@
 import json
 from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
+from users.auth import token_required
 from .models import FoodItem
 
-@login_required
+@token_required
 def menu_items(request):
     items = FoodItem.objects.filter(is_available=True)
     data = [

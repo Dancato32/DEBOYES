@@ -12,12 +12,20 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // On mount, verify the stored token by fetching the current user
+    const token = localStorage.getItem('authToken')
+    if (!token) {
+      setLoading(false)
+      return
+    }
     getCurrentUser()
       .then((response) => {
         setUser(response.data.user)
         setIsAuthenticated(true)
       })
       .catch(() => {
+        // Token is invalid or expired — clear it
+        localStorage.removeItem('authToken')
         setUser(null)
         setIsAuthenticated(false)
       })
@@ -26,13 +34,17 @@ export function AuthProvider({ children }) {
 
   const login = async (payload) => {
     try {
-      await authLogin(payload)
-      const response = await getCurrentUser()
-      const userData = response.data.user
+      const response = await authLogin(payload)
+      const { token } = response.data
+      // Store the JWT so every future request carries it
+      localStorage.setItem('authToken', token)
+
+      const meResponse = await getCurrentUser()
+      const userData = meResponse.data.user
       setUser(userData)
       setIsAuthenticated(true)
       toast.success(`Welcome back, ${userData.username}!`)
-      
+
       // Role-based redirection
       if (userData.user_type === 'admin') {
         navigate('/admin')
@@ -49,13 +61,15 @@ export function AuthProvider({ children }) {
 
   const signup = async (payload) => {
     try {
-      await authSignup(payload)
+      const response = await authSignup(payload)
+      const { token } = response.data
+      if (token) {
+        localStorage.setItem('authToken', token)
+      }
       toast.success('Account created!')
-      // Automatically log in after successful signup
       try {
         await login({ username: payload.username, password: payload.password })
       } catch (loginError) {
-        // If login fails after signup, don't show "Signup failed" but prompt manual login
         console.error('Auto-login failed after signup:', loginError)
         toast.info('Please sign in manually with your new account.')
         navigate('/login')
@@ -69,13 +83,12 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       await authLogout()
-      setUser(null)
-      setIsAuthenticated(false)
-      toast.success('Logged out')
-      navigate('/login')
-    } catch (error) {
-      toast.error('Logout failed')
-    }
+    } catch (_) { /* best effort */ }
+    localStorage.removeItem('authToken')
+    setUser(null)
+    setIsAuthenticated(false)
+    toast.success('Logged out')
+    navigate('/login')
   }
 
   return (

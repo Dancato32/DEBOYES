@@ -1,8 +1,8 @@
 from django.http import JsonResponse
 from orders.models import Order
-from .admin_views import admin_required
+from .auth import admin_token_required
 
-@admin_required
+@admin_token_required
 def get_revenue_details(request):
     """
     Returns a detailed list of all revenue-generating orders (delivered).

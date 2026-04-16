@@ -12,4 +12,4 @@ asgiref
 sqlparse
 typing-extensions
 Pillow
-axios
+PyJWT>=2.8.0

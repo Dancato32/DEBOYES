@@ -1,24 +1,17 @@
 import json
 from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Count
 from django.utils import timezone
 from users.models import User
 from orders.models import Order
 from menu.models import FoodItem
 from django.views.decorators.csrf import csrf_exempt
+from .auth import admin_token_required
 
-def admin_required(view_func):
-    @login_required
-    def _wrapped_view(request, *args, **kwargs):
-        if request.user.user_type != 'admin' and not request.user.is_superuser:
-            return JsonResponse({"error": "Admin access required"}, status=403)
-        return view_func(request, *args, **kwargs)
-    return _wrapped_view
 
 from datetime import timedelta
 
-@admin_required
+@admin_token_required
 def get_admin_stats(request):
     today = timezone.now().date()
     yesterday = today - timedelta(days=1)
@@ -63,7 +56,7 @@ def get_admin_stats(request):
         "rider_trend": f"+ {active_riders} currently active"
     })
 
-@admin_required
+@admin_token_required
 def get_all_orders(request):
     status = request.GET.get('status')
     orders = Order.objects.all().order_by('-created_at')
@@ -85,7 +78,7 @@ def get_all_orders(request):
     ]
     return JsonResponse({"orders": data})
 
-@admin_required
+@admin_token_required
 def get_all_riders(request):
     riders = User.objects.filter(user_type='rider')
     data = [
@@ -100,7 +93,7 @@ def get_all_riders(request):
     ]
     return JsonResponse({"riders": data})
 
-@admin_required
+@admin_token_required
 def get_all_customers(request):
     customers = User.objects.filter(user_type='customer').annotate(
         order_count=Count('orders')
@@ -120,7 +113,7 @@ def get_all_customers(request):
     return JsonResponse({"customers": data})
 
 @csrf_exempt
-@admin_required
+@admin_token_required
 def manage_menu(request, item_id=None):
     from orders.views import broadcast_admin_update
     
@@ -169,7 +162,7 @@ def manage_menu(request, item_id=None):
     return JsonResponse({"items": data})
 
 @csrf_exempt
-@admin_required
+@admin_token_required
 def mark_order_ready(request, order_id):
     from orders.views import broadcast_admin_update, broadcast_rider_event
     if request.method == "POST":
@@ -198,7 +191,7 @@ def mark_order_ready(request, order_id):
 
 
 @csrf_exempt
-@admin_required
+@admin_token_required
 def confirm_pickup(request, order_id):
     """Admin confirms the rider has picked up the food. Status moves to 'on_the_way'."""
     from orders.views import broadcast_admin_update
@@ -222,7 +215,7 @@ def confirm_pickup(request, order_id):
 
 
 @csrf_exempt
-@admin_required
+@admin_token_required
 def confirm_order(request, order_id):
     """Admin confirms a 'new' order — moves it to 'pending'. No alert sent to riders yet."""
     from orders.views import broadcast_admin_update
