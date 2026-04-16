@@ -85,7 +85,8 @@ export default function AdminMenu() {
       if (fileInputRef.current) fileInputRef.current.value = ''
       loadMenu()
     } catch (error) {
-      toast.error('Failed to add item')
+      console.error('Add item error:', error)
+      toast.error('Failed to add item: ' + (error.response?.data?.error || error.message))
     } finally {
       setSubmitting(false)
     }
