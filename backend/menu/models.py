@@ -17,4 +17,8 @@ class FoodItem(models.Model):
 @receiver(post_delete, sender=FoodItem)
 def delete_item_image(sender, instance, **kwargs):
     if instance.image:
-        instance.image.delete(save=False)
+        try:
+            instance.image.delete(save=False)
+        except Exception:
+            # If Cloudinary is not configured or fails, we still want the item deleted from the DB
+            pass
