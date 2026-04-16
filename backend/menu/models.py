@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 
 class FoodItem(models.Model):
     name = models.CharField(max_length=100)
@@ -10,3 +12,9 @@ class FoodItem(models.Model):
 
     def __str__(self):
         return self.name
+
+# Automatically delete the image from Cloudinary when the FoodItem is deleted
+@receiver(post_delete, sender=FoodItem)
+def delete_item_image(sender, instance, **kwargs):
+    if instance.image:
+        instance.image.delete(save=False)
