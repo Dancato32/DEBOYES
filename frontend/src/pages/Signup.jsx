@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 export default function Signup() {
-  const { signup } = useAuth()
+  const { signup, isAuthenticated, user } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   
