@@ -8,7 +8,7 @@ def get_revenue_details(request):
     Returns a detailed list of all revenue-generating orders (delivered).
     Includes customer, total price, and localized delivery timestamp.
     """
-    orders = Order.objects.filter(status='delivered').order_by('-delivered_at')
+    orders = Order.objects.filter(status='delivered').select_related('customer').prefetch_related('items__food').order_by('-delivered_at')[:100]
     
     data = [
         {

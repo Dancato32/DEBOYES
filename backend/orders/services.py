@@ -79,30 +79,37 @@ def optimize_delivery_route(batch):
     Updates stop_number for all orders in a batch based on smart priority.
     Priority Formula: (Waiting Time * 1.5) - (Distance from cluster center * 2.0)
     """
-    orders = list(batch.orders.all())
-    if not orders:
-        return
-        
-    now = timezone.now()
-    # Use the first order (oldest) as the reference for distance clustering
-    reference = orders[0]
+    from django.db import transaction
     
-    for order in orders:
-        wait_time = (now - order.created_at).total_seconds() / 60
-        dist = calculate_distance(order.lat, order.lng, reference.lat, reference.lng)
-        
-        # Calculation
-        score = (wait_time * 1.5) - (dist * 2.0)
-        
-        # Force prioritization rule (e.g. > 30 mins)
-        if wait_time > 30:
-            score += 1000
+    with transaction.atomic():
+        orders = list(batch.orders.all())
+        if not orders:
+            return
             
-        order.priority_score = score
-        order.save()
+        now = timezone.now()
+        # Use the first order (oldest) as the reference for distance clustering
+        reference = orders[0]
+        
+        for order in orders:
+            wait_time = (now - order.created_at).total_seconds() / 60
+            dist = calculate_distance(order.lat, order.lng, reference.lat, reference.lng)
+            
+            # Calculation
+            score = (wait_time * 1.5) - (dist * 2.0)
+            
+            # Force prioritization rule (e.g. > 30 mins)
+            if wait_time > 30:
+                score += 1000
+                
+            order.priority_score = score
+        
+        # Save priority scores in bulk before sequencing
+        Order.objects.bulk_update(orders, ['priority_score'])
 
-    # Apply sequence
-    sorted_orders = batch.orders.all().order_by('-priority_score')
-    for i, order in enumerate(sorted_orders):
-        order.stop_number = i + 1
-        order.save()
+        # Apply sequence
+        sorted_orders = batch.orders.all().order_by('-priority_score')
+        for i, order in enumerate(sorted_orders):
+            order.stop_number = i + 1
+        
+        # Final bulk update for sequence numbers
+        Order.objects.bulk_update(sorted_orders, ['stop_number'])

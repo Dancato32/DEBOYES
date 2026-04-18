@@ -43,7 +43,7 @@ class Order(models.Model):
     address = models.CharField(max_length=255)
     area = models.CharField(max_length=100)
 
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new', db_index=True)
     stop_number = models.PositiveIntegerField(default=0)
 
     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -57,10 +57,10 @@ class Order(models.Model):
     restaurant_lng = models.FloatField(null=True, blank=True)
     priority_score = models.FloatField(default=0)
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     assigned_at = models.DateTimeField(null=True, blank=True)
     picked_up_at = models.DateTimeField(null=True, blank=True)
-    delivered_at = models.DateTimeField(null=True, blank=True)
+    delivered_at = models.DateTimeField(null=True, blank=True, db_index=True)
 
 
 class DeliveryZone(models.Model):

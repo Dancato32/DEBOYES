@@ -13,6 +13,14 @@ from datetime import timedelta
 
 @admin_token_required
 def get_admin_stats(request):
+    from django.core.cache import cache
+    
+    cache_key = 'admin_dashboard_stats'
+    cached_data = cache.get(cache_key)
+    
+    if cached_data:
+        return JsonResponse(cached_data)
+
     today = timezone.now().date()
     yesterday = today - timedelta(days=1)
     
@@ -44,7 +52,7 @@ def get_admin_stats(request):
     order_trend = get_trend(total_orders, y_orders)
     revenue_trend = get_trend(float(total_revenue), float(y_revenue))
     
-    return JsonResponse({
+    stats_data = {
         "total_orders": total_orders,
         "active_riders": active_riders,
         "total_revenue": str(total_revenue),
@@ -54,12 +62,17 @@ def get_admin_stats(request):
         "order_trend": order_trend,
         "revenue_trend": revenue_trend,
         "rider_trend": f"+ {active_riders} currently active"
-    })
+    }
+    
+    # Cache for 5 minutes (300 seconds)
+    cache.set(cache_key, stats_data, 300)
+    
+    return JsonResponse(stats_data)
 
 @admin_token_required
 def get_all_orders(request):
     status = request.GET.get('status')
-    orders = Order.objects.all().order_by('-created_at')
+    orders = Order.objects.select_related('customer').prefetch_related('items__food').all().order_by('-created_at')
     
     if status and status != 'All':
         orders = orders.filter(status=status.lower())

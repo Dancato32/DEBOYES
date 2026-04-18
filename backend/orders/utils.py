@@ -22,7 +22,12 @@ def calculate_delivery_fee(lat, lng, area_name):
     1. Try exact name match from user's list.
     2. Fallback to nearest neighbor coordinate estimation.
     """
-    zones = list(DeliveryZone.objects.all())
+    from django.core.cache import cache
+    zones = cache.get('delivery_zones_list')
+    if not zones:
+        zones = list(DeliveryZone.objects.all())
+        cache.set('delivery_zones_list', zones, 3600) # Cache for 1 hour
+
     if not zones:
         # Emergency fallback if database is empty
         return 20.0, "Default"

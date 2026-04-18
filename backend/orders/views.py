@@ -690,9 +690,9 @@ def track_order(request, order_id):
 @token_required
 def get_history(request):
     if request.user.is_rider():
-        orders = Order.objects.filter(rider=request.user, status='delivered').prefetch_related('items__food').order_by('-delivered_at')
+        orders = Order.objects.filter(rider=request.user, status='delivered').select_related('customer').prefetch_related('items__food').order_by('-delivered_at')[:50]
     else:
-        orders = Order.objects.filter(customer=request.user).exclude(status='new').prefetch_related('items__food').order_by('-created_at')
+        orders = Order.objects.filter(customer=request.user).exclude(status='new').prefetch_related('items__food').order_by('-created_at')[:20]
 
     data = [
         {
