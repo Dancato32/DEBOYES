@@ -12,6 +12,7 @@ export default function Checkout() {
   const [address, setAddress] = useState('')
   const [area, setArea] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState('pay_in_person')
   const [locating, setLocating] = useState(false)
   const [coords, setCoords] = useState(null) // { lat, lng }
   const [showMap, setShowMap] = useState(false)
@@ -206,6 +207,7 @@ export default function Checkout() {
         total_price: grandTotal.toFixed(2),
         lat: coords?.lat,
         lng: coords?.lng,
+        payment_method: paymentMethod,
         items: cartItems.map(item => ({
           food_id: item.food_id,
           qty: item.qty
@@ -214,8 +216,14 @@ export default function Checkout() {
 
       const res = await placeOrder(payload)
       clearCart()
-      toast.success('Order placed successfully!', { position: 'top-center' })
-      navigate(`/track/${res.data.order_id}`)
+
+      if (paymentMethod === 'pay_on_app' && res.data.payment?.authorization_url) {
+        toast.info('Redirecting to payment...', { position: 'top-center' })
+        window.location.href = res.data.payment.authorization_url
+      } else {
+        toast.success('Order placed successfully!', { position: 'top-center' })
+        navigate(`/track/${res.data.order_id}`)
+      }
       
     } catch (error) {
       console.error(error)
@@ -400,14 +408,68 @@ export default function Checkout() {
                  </div>
               </div>
 
+              {/* Payment Method Selector */}
+              <div className="space-y-4">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-brand-charcoal font-inter">Payment Method</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Pay on App */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('pay_on_app')}
+                    className={`relative p-4 rounded-2xl border-2 transition-all duration-300 text-left group ${
+                      paymentMethod === 'pay_on_app'
+                        ? 'border-brand-red bg-brand-red/[0.04] shadow-lg shadow-brand-red/10'
+                        : 'border-[#F0E8D8] bg-white hover:border-brand-red/30 hover:bg-brand-cream/30'
+                    }`}
+                  >
+                    {paymentMethod === 'pay_on_app' && (
+                      <div className="absolute top-2.5 right-2.5 h-5 w-5 rounded-full bg-brand-red flex items-center justify-center">
+                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                      </div>
+                    )}
+                    <span className="text-2xl block mb-2">📱</span>
+                    <p className="text-xs font-black text-brand-deep-dark font-poppins leading-tight">Pay on App</p>
+                    <p className="text-[9px] text-brand-charcoal/60 font-bold font-inter mt-1 uppercase tracking-wider">MoMo • Card</p>
+                  </button>
+
+                  {/* Pay in Person */}
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('pay_in_person')}
+                    className={`relative p-4 rounded-2xl border-2 transition-all duration-300 text-left group ${
+                      paymentMethod === 'pay_in_person'
+                        ? 'border-brand-red bg-brand-red/[0.04] shadow-lg shadow-brand-red/10'
+                        : 'border-[#F0E8D8] bg-white hover:border-brand-red/30 hover:bg-brand-cream/30'
+                    }`}
+                  >
+                    {paymentMethod === 'pay_in_person' && (
+                      <div className="absolute top-2.5 right-2.5 h-5 w-5 rounded-full bg-brand-red flex items-center justify-center">
+                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                      </div>
+                    )}
+                    <span className="text-2xl block mb-2">💵</span>
+                    <p className="text-xs font-black text-brand-deep-dark font-poppins leading-tight">Pay in Person</p>
+                    <p className="text-[9px] text-brand-charcoal/60 font-bold font-inter mt-1 uppercase tracking-wider">Cash on Delivery</p>
+                  </button>
+                </div>
+              </div>
+
               <button 
                 onClick={handlePlaceOrder}
                 disabled={isSubmitting}
-                className="w-full h-16 flex items-center justify-center rounded-2xl bg-brand-red text-white shadow-2xl shadow-brand-red/30 hover:bg-brand-dark-red transition-all active:scale-[0.97] disabled:opacity-50"
+                className={`w-full h-16 flex items-center justify-center rounded-2xl text-white shadow-2xl transition-all active:scale-[0.97] disabled:opacity-50 ${
+                  paymentMethod === 'pay_on_app' 
+                    ? 'bg-emerald-600 shadow-emerald-600/30 hover:bg-emerald-700' 
+                    : 'bg-brand-red shadow-brand-red/30 hover:bg-brand-dark-red'
+                }`}
               >
                 <div className="flex flex-col items-center">
-                  <span className="font-black text-xs font-inter uppercase tracking-[0.3em]">{isSubmitting ? 'Finalizing...' : 'Send Official Order'}</span>
-                  {!isSubmitting && <span className="text-[9px] opacity-70 uppercase tracking-widest font-inter mt-0.5">Accra • Ghana</span>}
+                  <span className="font-black text-xs font-inter uppercase tracking-[0.3em]">
+                    {isSubmitting ? 'Processing...' : paymentMethod === 'pay_on_app' ? 'Pay Now' : 'Place Order'}
+                  </span>
+                  {!isSubmitting && <span className="text-[9px] opacity-70 uppercase tracking-widest font-inter mt-0.5">
+                    {paymentMethod === 'pay_on_app' ? 'Secure Paystack Checkout' : 'Accra • Ghana'}
+                  </span>}
                 </div>
               </button>
             </div>
@@ -420,9 +482,15 @@ export default function Checkout() {
         <button 
           onClick={handlePlaceOrder}
           disabled={isSubmitting}
-          className="w-full max-w-lg mx-auto flex items-center justify-center rounded-2xl bg-brand-red h-16 text-white shadow-xl active:scale-95 disabled:opacity-50"
+          className={`w-full max-w-lg mx-auto flex items-center justify-center rounded-2xl h-16 text-white shadow-xl active:scale-95 disabled:opacity-50 ${
+            paymentMethod === 'pay_on_app' 
+              ? 'bg-emerald-600 shadow-emerald-600/30' 
+              : 'bg-brand-red shadow-brand-red/30'
+          }`}
         >
-          <span className="font-black text-xs font-inter uppercase tracking-[0.3em]">{isSubmitting ? 'Processing...' : 'Place Official Order'}</span>
+          <span className="font-black text-xs font-inter uppercase tracking-[0.3em]">
+            {isSubmitting ? 'Processing...' : paymentMethod === 'pay_on_app' ? 'Pay Now — ₵' + grandTotal.toFixed(2) : 'Place Order — ₵' + grandTotal.toFixed(2)}
+          </span>
         </button>
       </div>
     </div>

@@ -248,6 +248,7 @@ def place_order(request):
     lat = data.get('lat')
     lng = data.get('lng')
     area = data.get('area', '')
+    payment_method = data.get('payment_method', 'pay_in_person')
     
     fee, zone_name = calculate_delivery_fee(lat, lng, area)
 
@@ -261,7 +262,9 @@ def place_order(request):
         lat=lat,
         lng=lng,
         restaurant_lat=data.get('restaurant_lat', 5.6037),
-        restaurant_lng=data.get('restaurant_lng', -0.1870)
+        restaurant_lng=data.get('restaurant_lng', -0.1870),
+        payment_method=payment_method,
+        payment_status='pending',
     )
 
     items = data.get('items', [])
@@ -276,14 +279,83 @@ def place_order(request):
     order.total_price = food_total + float(fee)
     order.save()
 
-    # Order starts as 'new' — admin must confirm it before riders can see/accept it
-    broadcast_admin_update("ORDER_PLACED", {"order_id": order.id})
-    return JsonResponse({
-        "message": "Order placed", 
-        "order_id": order.id,
-        "delivery_fee": fee,
-        "total_price": order.total_price
-    })
+    # Handle payment method
+    if payment_method == 'pay_on_app':
+        try:
+            from .payment import initialize_payment
+            email = request.user.email or f"{request.user.username}@placeholder.com"
+            payment_data = initialize_payment(order, email)
+            return JsonResponse({
+                "message": "Payment initialized",
+                "order_id": order.id,
+                "delivery_fee": fee,
+                "total_price": order.total_price,
+                "payment": {
+                    "authorization_url": payment_data["authorization_url"],
+                    "reference": payment_data["reference"],
+                    "access_code": payment_data["access_code"],
+                }
+            })
+        except Exception as e:
+            # If payment init fails, still keep the order but notify user
+            return JsonResponse({
+                "error": f"Order created but payment failed to initialize: {str(e)}",
+                "order_id": order.id,
+            }, status=500)
+    else:
+        # Pay in person — proceed normally
+        broadcast_admin_update("ORDER_PLACED", {"order_id": order.id})
+        return JsonResponse({
+            "message": "Order placed", 
+            "order_id": order.id,
+            "delivery_fee": fee,
+            "total_price": order.total_price
+        })
+
+
+# VERIFY PAYMENT (Paystack callback)
+@csrf_exempt
+@token_required
+def verify_payment_view(request, reference):
+    """Verify a Paystack payment after the customer returns from the checkout page."""
+    try:
+        order = Order.objects.get(payment_reference=reference)
+    except Order.DoesNotExist:
+        return JsonResponse({"error": "No order found with this payment reference"}, status=404)
+
+    # Security: only the order owner can verify
+    if order.customer != request.user:
+        return JsonResponse({"error": "Unauthorized"}, status=403)
+
+    from .payment import verify_payment
+    result = verify_payment(reference)
+
+    if result["success"]:
+        order.payment_status = 'paid'
+        order.save(update_fields=['payment_status'])
+
+        # Now notify admin that a paid order has arrived
+        broadcast_admin_update("ORDER_PLACED", {
+            "order_id": order.id,
+            "payment_method": "pay_on_app",
+            "payment_status": "paid"
+        })
+
+        return JsonResponse({
+            "message": "Payment verified successfully!",
+            "order_id": order.id,
+            "status": "paid",
+            "amount": result["amount"],
+            "channel": result["channel"],
+        })
+    else:
+        order.payment_status = 'failed'
+        order.save(update_fields=['payment_status'])
+        return JsonResponse({
+            "error": "Payment verification failed",
+            "message": result.get("message", "Unknown error"),
+            "order_id": order.id,
+        }, status=400)
 
 
 # GET AVAILABLE RIDERS

@@ -86,6 +86,8 @@ def get_all_orders(request):
             "delivery_fee": str(o.delivery_fee),
             "delivery_zone": o.delivery_zone_name or "N/A",
             "status": o.status.replace('_', ' ').title(),
+            "payment_method": o.get_payment_method_display(),
+            "payment_status": o.get_payment_status_display(),
             "date": o.created_at.strftime('%Y-%m-%d'),
             "time": o.created_at.strftime('%H:%M:%S'),
         }

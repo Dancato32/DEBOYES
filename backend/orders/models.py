@@ -62,6 +62,20 @@ class Order(models.Model):
     picked_up_at = models.DateTimeField(null=True, blank=True)
     delivered_at = models.DateTimeField(null=True, blank=True, db_index=True)
 
+    # Payment
+    PAYMENT_METHOD_CHOICES = (
+        ('pay_on_app', 'Pay on App'),
+        ('pay_in_person', 'Pay in Person'),
+    )
+    PAYMENT_STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('paid', 'Paid'),
+        ('failed', 'Failed'),
+    )
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='pay_in_person')
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
+    payment_reference = models.CharField(max_length=100, blank=True, null=True, unique=True)
+
 
 class DeliveryZone(models.Model):
     name = models.CharField(max_length=100, unique=True)

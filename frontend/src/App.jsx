@@ -15,6 +15,7 @@ import Profile from './pages/Profile'
 import RiderAlerts from './pages/RiderAlerts'
 import RiderBatchDetails from './pages/RiderBatchDetails'
 import RiderActiveTrip from './pages/RiderActiveTrip'
+import PaymentSuccess from './pages/PaymentSuccess'
 
 function ProtectedRoute({ children, role }) {
   const { user, isAuthenticated } = useAuth()
@@ -44,7 +45,7 @@ export default function App() {
   const { user, loading } = useAuth()
   
   const isAdminPath = location.pathname.startsWith('/admin')
-  const isMobileLayoutPath = location.pathname === '/' || location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/customer' || location.pathname === '/checkout' || location.pathname === '/history' || location.pathname === '/profile' || location.pathname.startsWith('/rider') || location.pathname.startsWith('/track')
+  const isMobileLayoutPath = location.pathname === '/' || location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/customer' || location.pathname === '/checkout' || location.pathname === '/history' || location.pathname === '/profile' || location.pathname.startsWith('/rider') || location.pathname.startsWith('/track') || location.pathname.startsWith('/payment')
   const hideNavbar = isMobileLayoutPath
 
   // Block rendering until the session check resolves — prevents
@@ -198,6 +199,14 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/payment/success"
+              element={
+                <ProtectedRoute>
+                  <PaymentSuccess />
                 </ProtectedRoute>
               }
             />
