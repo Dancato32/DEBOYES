@@ -40,7 +40,7 @@ def signup(request):
             token = create_token(user)
             return JsonResponse({"message": "User created successfully", "token": token}, status=201)
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
+            return JsonResponse({"error": f"Signup failed: {str(e)}"}, status=400)
 
 
 # LOGIN
@@ -52,8 +52,17 @@ def login_view(request):
         except Exception:
             return JsonResponse({"error": "Invalid JSON"}, status=400)
 
+        username_input = data.get('username', '').strip()
+        
+        # Find user case-insensitively to support legacy mixed-case accounts (e.g. DEBOYES)
+        try:
+            db_user = User.objects.get(username__iexact=username_input)
+            auth_username = db_user.username
+        except User.DoesNotExist:
+            auth_username = username_input
+
         user = authenticate(
-            username=data.get('username', '').strip().lower(),
+            username=auth_username,
             password=data.get('password', '')
         )
 

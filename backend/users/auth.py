@@ -17,12 +17,14 @@ User = get_user_model()
 
 def create_token(user):
     """Create a signed JWT for the given user. Expires in 7 days."""
+    from django.utils import timezone
+    now = timezone.now()
     payload = {
         'user_id': user.id,
         'username': user.username,
         'user_type': user.user_type,
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(days=7),
-        'iat': datetime.datetime.utcnow(),
+        'exp': now + datetime.timedelta(days=7),
+        'iat': now,
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
 
