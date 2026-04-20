@@ -18,7 +18,7 @@ export default function Login() {
     event.preventDefault()
     setLoading(true)
     try {
-      await login({ username: username.trim().lower(), password })
+      await login({ username: username.trim().toLowerCase(), password })
     } finally {
       setLoading(false)
     }

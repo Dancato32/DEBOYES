@@ -41,7 +41,7 @@ export default function Signup() {
     try {
       await signup({ 
         ...formData, 
-        username: formData.username.trim().lower() 
+        username: formData.username.trim().toLowerCase() 
       })
     } finally {
       setLoading(false)
