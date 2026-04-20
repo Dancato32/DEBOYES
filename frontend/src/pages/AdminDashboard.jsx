@@ -16,6 +16,7 @@ export default function AdminDashboard() {
     revenue_trend: '...',
     rider_trend: '...'
   })
+  const [orders, setOrders] = useState([])
   const [riders, setRiders] = useState([])
   const [settings, setSettings] = useState({ broadcast_message: '' })
   const [loading, setLoading] = useState(true)
