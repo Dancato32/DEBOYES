@@ -95,12 +95,12 @@ CHANNEL_LAYERS = {
 
 # Database
 # Use PostgreSQL on Render (via DATABASE_URL environment variable)
-database_url = os.environ.get('DATABASE_URL', '').strip()
-if not database_url:
-    database_url = f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
-
+# If no DATABASE_URL is found, fall back to local SQLite
 DATABASES = {
-    'default': dj_database_url.parse(database_url, conn_max_age=600)
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600
+    )
 }
 
 # Performance: Caching configuration
