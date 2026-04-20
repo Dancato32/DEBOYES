@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { fetchAdminStats, fetchAdminOrders, fetchAdminRiders } from '../services/api'
+import { fetchAdminStats, fetchAdminOrders, fetchAdminRiders, fetchAdminSettings, updateAdminSetting } from '../services/api'
 import useAdminSocket from '../hooks/useAdminSocket'
 import { toast } from 'react-toastify'
 
@@ -16,21 +16,24 @@ export default function AdminDashboard() {
     revenue_trend: '...',
     rider_trend: '...'
   })
-  const [orders, setOrders] = useState([])
   const [riders, setRiders] = useState([])
+  const [settings, setSettings] = useState({ broadcast_message: '' })
   const [loading, setLoading] = useState(true)
+  const [savingSetting, setSavingSetting] = useState(false)
 
   const loadData = async () => {
     setLoading(true)
     try {
-      const [sRes, oRes, rRes] = await Promise.all([
+      const [sRes, oRes, rRes, setRes] = await Promise.all([
         fetchAdminStats(),
         fetchAdminOrders('All'),
-        fetchAdminRiders()
+        fetchAdminRiders(),
+        fetchAdminSettings()
       ])
       setStats(sRes.data)
       setOrders(oRes.data.orders)
       setRiders(rRes.data.riders)
+      setSettings(setRes.data.settings || { broadcast_message: '' })
     } catch (error) {
       toast.error('Failed to load dashboard data')
     } finally {
@@ -47,12 +50,62 @@ export default function AdminDashboard() {
     loadData()
   }, [])
 
+  const handleUpdateBroadcast = async () => {
+    setSavingSetting(true)
+    try {
+      await updateAdminSetting({ key: 'broadcast_message', value: settings.broadcast_message })
+      toast.success('System announcement updated!')
+    } catch (error) {
+      toast.error('Failed to save announcement')
+    } finally {
+      setSavingSetting(false)
+    }
+  }
+
   return (
     <div className="space-y-10 py-6">
-      <header>
-        <h1 className="text-3xl font-bold font-poppins text-brand-deep-dark tracking-tight">Good morning, Admin</h1>
-        <p className="mt-2 text-brand-charcoal font-medium font-inter text-sm">Here's what's happening with <span className="font-pacifico text-brand-red lowercase text-lg">De Boye's</span> today.</p>
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <h1 className="text-3xl font-bold font-poppins text-brand-deep-dark tracking-tight">Good morning, Admin</h1>
+          <p className="mt-2 text-brand-charcoal font-medium font-inter text-sm">Here's what's happening with <span className="font-pacifico text-brand-red lowercase text-lg">De Boye's</span> today.</p>
+        </div>
+        
+        {/* Persistence Alert Helper */}
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-3 flex items-center gap-3 animate-pulse">
+           <span className="text-xl">⚠️</span>
+           <div>
+             <p className="text-[10px] font-black text-amber-800 uppercase tracking-widest font-inter">Persistence Check</p>
+             <p className="text-[11px] text-amber-700 font-medium font-inter">Ensure DATABASE_URL is set in Render for permanent storage.</p>
+           </div>
+        </div>
       </header>
+
+      {/* Admin Broadcast Widget */}
+      <section className="rounded-[2.5rem] bg-brand-deep-dark p-8 shadow-2xl shadow-brand-deep-dark/30 text-white overflow-hidden relative group">
+        <div className="absolute top-0 right-0 p-10 opacity-10 pointer-events-none transform group-hover:scale-110 transition-transform">
+          <svg className="w-40 h-40" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+        </div>
+        <div className="relative z-10 max-w-2xl">
+          <h2 className="text-sm font-black uppercase tracking-[0.25em] text-brand-red mb-4">System Announcement (Broadcast)</h2>
+          <p className="text-slate-300 text-sm font-medium mb-6 leading-relaxed">This message will "stay" here and be visible to all staff, even across logouts. Use it for instructions or daily notes.</p>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <input 
+              type="text" 
+              value={settings.broadcast_message}
+              onChange={(e) => setSettings({ ...settings, broadcast_message: e.target.value })}
+              placeholder="Type persistent message here..."
+              className="flex-1 bg-white/10 border border-white/20 rounded-2xl px-6 py-4 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-brand-red transition-all"
+            />
+            <button 
+              onClick={handleUpdateBroadcast}
+              disabled={savingSetting}
+              className="bg-brand-red hover:bg-brand-dark-red text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 shadow-xl shadow-brand-red/20"
+            >
+              {savingSetting ? 'Saving...' : 'Save & Broadcast'}
+            </button>
+          </div>
+        </div>
+      </section>
 
       {/* Stats Cards */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

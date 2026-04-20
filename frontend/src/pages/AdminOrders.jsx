@@ -7,7 +7,9 @@ const statusFilters = ['All', 'New', 'Pending', 'Assigned', 'Ready', 'On The Way
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState([])
-  const [activeFilter, setActiveFilter] = useState('All')
+  const [activeFilter, setActiveFilter] = useState(() => {
+    return localStorage.getItem('adminOrderFilter') || 'All'
+  })
   const [loading, setLoading] = useState(true)
 
   const loadOrders = async () => {
@@ -62,6 +64,7 @@ export default function AdminOrdersPage() {
   }
 
   useEffect(() => {
+    localStorage.setItem('adminOrderFilter', activeFilter)
     loadOrders()
   }, [activeFilter])
 

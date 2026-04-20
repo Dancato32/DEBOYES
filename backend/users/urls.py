@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import signup, login_view, logout_view, toggle_availability, current_user, rider_stats
-from .admin_views import get_admin_stats, get_all_orders, get_all_riders, manage_menu, get_all_customers, mark_order_ready, confirm_order, confirm_pickup
+from .admin_views import get_admin_stats, get_all_orders, get_all_riders, manage_menu, get_all_customers, mark_order_ready, confirm_order, confirm_pickup, manage_settings
 from .revenue_views import get_revenue_details
 
 urlpatterns = [
@@ -21,4 +21,5 @@ urlpatterns = [
     path('admin/orders/<int:order_id>/confirm/', confirm_order),
     path('admin/orders/<int:order_id>/pickup/', confirm_pickup),
     path('admin/revenue/', get_revenue_details),
+    path('admin/settings/', manage_settings),
 ]

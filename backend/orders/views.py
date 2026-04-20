@@ -11,6 +11,11 @@ from .models import Order, OrderItem, DeliveryBatch, OrderMessage
 from . import services
 from menu.models import FoodItem
 from users.auth import token_required
+from django.core.cache import cache
+
+def clear_admin_stats_cache():
+    """Invalidates the admin dashboard statistics cache."""
+    cache.delete('admin_dashboard_stats')
 
 User = get_user_model()
 
@@ -285,6 +290,10 @@ def place_order(request):
             from .payment import initialize_payment
             email = request.user.email or f"{request.user.username}@placeholder.com"
             payment_data = initialize_payment(order, email)
+            
+            # CLEAR CACHE: New order placed (even if pending payment)
+            clear_admin_stats_cache()
+            
             return JsonResponse({
                 "message": "Payment initialized",
                 "order_id": order.id,
@@ -304,6 +313,7 @@ def place_order(request):
             }, status=500)
     else:
         # Pay in person — proceed normally
+        clear_admin_stats_cache()
         broadcast_admin_update("ORDER_PLACED", {"order_id": order.id})
         return JsonResponse({
             "message": "Order placed", 

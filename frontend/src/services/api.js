@@ -80,5 +80,7 @@ export const toggleAvailability = (payload) => api.post('auth/availability/', pa
 export const markOrderReady = (orderId) => api.post(`auth/admin/orders/${orderId}/ready/`)
 export const confirmOrder = (orderId) => api.post(`auth/admin/orders/${orderId}/confirm/`)
 export const confirmPickup = (orderId) => api.post(`auth/admin/orders/${orderId}/pickup/`)
+export const fetchAdminSettings = () => api.get('auth/admin/settings/')
+export const updateAdminSetting = (payload) => api.post('auth/admin/settings/', payload)
 
 export default api

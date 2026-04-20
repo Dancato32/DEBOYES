@@ -25,3 +25,11 @@ class User(AbstractUser):
 
     def is_rider(self):
         return self.user_type == 'rider'
+
+class AdminSetting(models.Model):
+    key = models.CharField(max_length=50, unique=True)
+    value = models.TextField(blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.key}: {self.value[:30]}"

@@ -5,8 +5,10 @@ from django.utils import timezone
 from users.models import User
 from orders.models import Order
 from menu.models import FoodItem
+from .models import AdminSetting
 from django.views.decorators.csrf import csrf_exempt
 from .auth import admin_token_required
+from orders.views import clear_admin_stats_cache
 
 
 from datetime import timedelta
@@ -166,6 +168,7 @@ def manage_menu(request, item_id=None):
                     item.image = image
                 
                 item.save()
+                clear_admin_stats_cache()
                 broadcast_admin_update("MENU_UPDATED", {"action": "UPDATE", "item_name": item.name})
                 return JsonResponse({"message": "Item updated successfully", "id": item.id})
             else:
@@ -178,6 +181,7 @@ def manage_menu(request, item_id=None):
                     image=image,
                     is_available=True
                 )
+                clear_admin_stats_cache()
                 broadcast_admin_update("MENU_UPDATED", {"action": "ADD", "item_name": item.name})
                 return JsonResponse({"message": "Item added successfully", "id": item.id})
                 
@@ -196,6 +200,7 @@ def manage_menu(request, item_id=None):
                 item = FoodItem.objects.get(id=item_id)
                 name = item.name
                 item.delete()
+                clear_admin_stats_cache()
                 broadcast_admin_update("MENU_UPDATED", {"action": "DELETE", "item_name": name})
                 return JsonResponse({"message": "Item deleted"})
             return JsonResponse({"error": "No ID provided"}, status=400)
@@ -229,6 +234,7 @@ def mark_order_ready(request, order_id):
             
             order.status = 'ready'
             order.save()
+            clear_admin_stats_cache()
             
             # TRIGGER SMART BATCHING ENGINE
             from orders import services
@@ -260,6 +266,7 @@ def confirm_pickup(request, order_id):
             order.status = 'on_the_way'
             order.picked_up_at = timezone.now()
             order.save()
+            clear_admin_stats_cache()
 
             broadcast_admin_update("ORDER_STATUS_UPDATED", {"order_id": order.id, "status": "On The Way"})
             from orders.views import broadcast_rider_event
@@ -283,6 +290,7 @@ def confirm_order(request, order_id):
 
             order.status = 'pending'
             order.save()
+            clear_admin_stats_cache()
 
             # Only broadcast to admin — riders are NOT notified until order is 'ready'
             broadcast_admin_update("ORDER_STATUS_UPDATED", {"order_id": order.id, "status": "Pending"})
@@ -290,3 +298,31 @@ def confirm_order(request, order_id):
         except Order.DoesNotExist:
             return JsonResponse({"error": "Order not found"}, status=404)
     return JsonResponse({"error": "Invalid request method"}, status=405)
+
+@csrf_exempt
+@admin_token_required
+def manage_settings(request):
+    """
+    CRUD for AdminSettings (e.g. broadcast messages).
+    """
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            key = data.get('key')
+            value = data.get('value', '')
+            
+            if not key:
+                return JsonResponse({"error": "Key is required"}, status=400)
+            
+            setting, created = AdminSetting.objects.update_or_create(
+                key=key,
+                defaults={'value': value}
+            )
+            return JsonResponse({"message": "Setting saved", "key": key, "value": value})
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+            
+    # GET all settings
+    settings = AdminSetting.objects.all()
+    data = {s.key: s.value for s in settings}
+    return JsonResponse({"settings": data})
