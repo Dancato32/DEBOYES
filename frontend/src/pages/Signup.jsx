@@ -39,7 +39,10 @@ export default function Signup() {
     event.preventDefault()
     setLoading(true)
     try {
-      await signup(formData)
+      await signup({ 
+        ...formData, 
+        username: formData.username.trim().lower() 
+      })
     } finally {
       setLoading(false)
     }

@@ -14,7 +14,7 @@ def signup(request):
         try:
             data = json.loads(request.body)
             
-            username = data.get('username')
+            username = data.get('username', '').strip().lower()
             password = data.get('password')
             user_type = data.get('user_type')
             
@@ -28,13 +28,14 @@ def signup(request):
             if email and User.objects.filter(email=email).exists():
                 return JsonResponse({"error": "A user with that email already exists"}, status=400)
 
-            user = User.objects.create(
+            user = User.objects.create_user(
                 username=username,
                 email=email,
-                phone=data.get('phone', ''),
-                password=make_password(password),
-                user_type=user_type
+                password=password
             )
+            user.phone = data.get('phone', '')
+            user.user_type = user_type
+            user.save()
 
             token = create_token(user)
             return JsonResponse({"message": "User created successfully", "token": token}, status=201)
@@ -52,7 +53,7 @@ def login_view(request):
             return JsonResponse({"error": "Invalid JSON"}, status=400)
 
         user = authenticate(
-            username=data.get('username', ''),
+            username=data.get('username', '').strip().lower(),
             password=data.get('password', '')
         )
 
