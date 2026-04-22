@@ -74,7 +74,7 @@ def get_admin_stats(request):
 @admin_token_required
 def get_all_orders(request):
     status = request.GET.get('status')
-    orders = Order.objects.select_related('customer').prefetch_related('items__food').all().order_by('-created_at')
+    orders = Order.objects.select_related('customer', 'rider').prefetch_related('items__food').all().order_by('-created_at')
     
     if status and status != 'All':
         orders = orders.filter(status=status.lower())
@@ -88,6 +88,7 @@ def get_all_orders(request):
             "delivery_fee": str(o.delivery_fee),
             "delivery_zone": o.delivery_zone_name or "N/A",
             "status": o.status.replace('_', ' ').title(),
+            "rider": o.rider.username if o.rider else "Unassigned",
             "payment_method": o.get_payment_method_display(),
             "payment_status": o.get_payment_status_display(),
             "date": o.created_at.strftime('%Y-%m-%d'),

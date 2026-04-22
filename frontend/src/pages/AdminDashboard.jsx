@@ -141,6 +141,7 @@ export default function AdminDashboard() {
                   <th className="pb-5 pl-2">ID</th>
                   <th className="pb-5">Timestamp</th>
                   <th className="pb-5">Customer</th>
+                  <th className="pb-5">Rider</th>
                   <th className="pb-5">Items</th>
                   <th className="pb-5 text-right pr-2">Total</th>
                 </tr>
@@ -148,7 +149,7 @@ export default function AdminDashboard() {
               <tbody className="divide-y divide-[#F0E8D8]">
                 {orders.length === 0 ? (
                   <tr>
-                    <td colSpan="5" className="py-10 text-center text-sm font-medium text-brand-charcoal font-inter">No orders found.</td>
+                    <td colSpan="6" className="py-10 text-center text-sm font-medium text-brand-charcoal font-inter">No orders found.</td>
                   </tr>
                 ) : (
                   orders.map((order) => (
@@ -161,6 +162,7 @@ export default function AdminDashboard() {
                         </div>
                       </td>
                       <td className="py-6 text-sm font-semibold text-brand-deep-dark font-inter">{order.customer}</td>
+                      <td className="py-6 text-sm font-semibold text-emerald-600">{order.rider}</td>
                       <td className="py-6 text-xs text-brand-charcoal font-medium font-inter leading-relaxed">{order.items}</td>
                       <td className="py-6 text-right pr-2 font-bold text-lg text-brand-red font-poppins">₵{order.total}</td>
                     </tr>

@@ -98,6 +98,7 @@ export default function AdminOrdersPage() {
                 <th className="pb-4 pl-2">ORDER ID</th>
                 <th className="pb-4">DATE & TIME</th>
                 <th className="pb-4">CUSTOMER</th>
+                <th className="pb-4">RIDER</th>
                 <th className="pb-4">ITEMS</th>
                 <th className="pb-4">PRICE</th>
                 <th className="pb-4 text-center">STATUS</th>
@@ -117,6 +118,7 @@ export default function AdminOrdersPage() {
                     </div>
                   </td>
                   <td className="py-5 text-sm font-semibold text-brand-deep-dark">{order.customer}</td>
+                  <td className="py-5 text-sm font-semibold text-emerald-600">{order.rider}</td>
                   <td className="py-5 text-sm text-brand-charcoal max-w-[300px] truncate">{order.items}</td>
                   <td className="py-5 text-sm font-bold text-brand-red">₵{order.total}</td>
                   <td className="py-5 text-center">
