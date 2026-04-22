@@ -9,7 +9,7 @@ class User(AbstractUser):
     )
 
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES)
-    phone = models.CharField(max_length=15, blank=True)
+    phone = models.CharField(max_length=15, null=True, blank=True, unique=True)
 
     is_available = models.BooleanField(default=False)
     current_area = models.CharField(max_length=100, blank=True)
@@ -25,6 +25,15 @@ class User(AbstractUser):
 
     def is_rider(self):
         return self.user_type == 'rider'
+
+class LoginCode(models.Model):
+    phone = models.CharField(max_length=15)
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.phone} - {self.code}"
 
 class AdminSetting(models.Model):
     key = models.CharField(max_length=50, unique=True)

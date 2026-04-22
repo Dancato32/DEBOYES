@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { authLogin, authLogout, authSignup, getCurrentUser } from '../services/api'
+import { requestOTP, verifyOTP, completeProfile, authPasswordLogin, authLogout, getCurrentUser } from '../services/api'
 import { toast } from 'react-toastify'
 
 const AuthContext = createContext(null)
@@ -32,50 +32,78 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false))
   }, [])
 
-  const login = async (payload) => {
+  const login = async (phone, code) => {
     try {
-      const response = await authLogin(payload)
-      const { token } = response.data
-      // Store the JWT so every future request carries it
-      localStorage.setItem('authToken', token)
+      const response = await verifyOTP(phone, code)
+      const { status, token, user: userData } = response.data
 
-      const meResponse = await getCurrentUser()
-      const userData = meResponse.data.user
+      if (status === 'partial') {
+        return { status: 'partial', phone }
+      }
+
+      localStorage.setItem('authToken', token)
       setUser(userData)
       setIsAuthenticated(true)
       toast.success(`Welcome back, ${userData.username}!`)
-
-      // Role-based redirection
-      if (userData.user_type === 'admin') {
-        navigate('/admin')
-      } else if (userData.user_type === 'rider') {
-        navigate('/rider')
-      } else {
-        navigate('/customer')
-      }
+      
+      handleRedirect(userData)
+      return { status: 'success' }
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Invalid login credentials')
+      toast.error(error.response?.data?.error || 'Verification failed')
+      throw error
+    }
+  }
+
+  const loginWithPassword = async (username, password) => {
+    try {
+      const response = await authPasswordLogin({ username, password })
+      const { token, user: userData } = response.data
+      
+      localStorage.setItem('authToken', token)
+      setUser(userData)
+      setIsAuthenticated(true)
+      toast.success(`Welcome back, ${userData.username}!`)
+      
+      handleRedirect(userData)
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Invalid credentials')
       throw error
     }
   }
 
   const signup = async (payload) => {
     try {
-      const response = await authSignup(payload)
-      const { token } = response.data
-      if (token) {
-        localStorage.setItem('authToken', token)
-      }
-      toast.success('Account created!')
-      try {
-        await login({ username: payload.username, password: payload.password })
-      } catch (loginError) {
-        console.error('Auto-login failed after signup:', loginError)
-        toast.info('Please sign in manually with your new account.')
-        navigate('/login')
-      }
+      const response = await completeProfile(payload)
+      const { token, user: userData } = response.data
+      
+      localStorage.setItem('authToken', token)
+      setUser(userData)
+      setIsAuthenticated(true)
+      toast.success('Profile completed!')
+      
+      handleRedirect(userData)
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Signup failed')
+      toast.error(error.response?.data?.error || 'Profile setup failed')
+      throw error
+    }
+  }
+
+  const handleRedirect = (userData) => {
+    if (userData.user_type === 'admin') {
+      navigate('/admin')
+    } else if (userData.user_type === 'rider') {
+      navigate('/rider')
+    } else {
+      navigate('/customer')
+    }
+  }
+
+  const sendCode = async (phone) => {
+    try {
+      await requestOTP(phone)
+      toast.info('Verification code sent!')
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Failed to send code')
       throw error
     }
   }
@@ -83,16 +111,16 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       await authLogout()
-    } catch (_) { /* best effort */ }
+    } catch (_) { /* ignore */ }
     localStorage.removeItem('authToken')
     setUser(null)
     setIsAuthenticated(false)
     toast.success('Logged out')
-    navigate('/login')
+    navigate('/')
   }
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, loading, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, loading, login, loginWithPassword, signup, logout, sendCode }}>
       {children}
     </AuthContext.Provider>
   )

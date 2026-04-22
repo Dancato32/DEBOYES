@@ -3,74 +3,173 @@ from django.http import JsonResponse
 from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
+import random
+import datetime
 from .auth import create_token, token_required
+from .models import LoginCode
+from .sms_utils import send_arkesel_sms
 
 User = get_user_model()
 
-# SIGNUP
+# ──────────────────────────────────────────────
+# BOLT/YANGO STYLE AUTH FLOW
+# ──────────────────────────────────────────────
+
 @csrf_exempt
-def signup(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            
-            username = data.get('username', '').strip().lower()
-            password = data.get('password')
-            user_type = data.get('user_type')
-            
-            if not username or not password or not user_type:
-                return JsonResponse({"error": "Username, password and user type are required"}, status=400)
+def request_otp(request):
+    """Step 1: Accept phone and send/log a 4-digit code."""
+    if request.method != "POST": return JsonResponse({"error": "POST required"}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        phone = data.get('phone', '').strip()
+        if not phone: return JsonResponse({"error": "Phone required"}, status=400)
 
-            if User.objects.filter(username=username).exists():
-                return JsonResponse({"error": "A user with that username already exists"}, status=400)
-
-            email = data.get('email', '').strip()
-            if email and User.objects.filter(email=email).exists():
-                return JsonResponse({"error": "A user with that email already exists"}, status=400)
-
-            user = User.objects.create_user(
-                username=username,
-                email=email,
-                password=password
-            )
-            user.phone = data.get('phone', '')
-            user.user_type = user_type
-            user.save()
-
-            token = create_token(user)
-            return JsonResponse({"message": "User created successfully", "token": token}, status=201)
-        except Exception as e:
-            return JsonResponse({"error": f"Signup failed: {str(e)}"}, status=400)
-
-
-# LOGIN
-@csrf_exempt
-def login_view(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-        except Exception:
-            return JsonResponse({"error": "Invalid JSON"}, status=400)
-
-        username_input = data.get('username', '').strip()
+        # Generate 4-digit code
+        code = str(random.randint(1000, 9999))
         
-        # Find user case-insensitively to support legacy mixed-case accounts (e.g. DEBOYES)
+        # Save to DB
+        LoginCode.objects.create(phone=phone, code=code)
+        
+        # REAL SMS (Professional)
+        send_arkesel_sms(phone, code)
+        
+        return JsonResponse({"message": "Code sent"})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+
+
+@csrf_exempt
+def verify_otp(request):
+    """Step 2: Verify code and return JWT + user status."""
+    if request.method != "POST": return JsonResponse({"error": "POST required"}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        phone = data.get('phone', '').strip()
+        code = data.get('code', '').strip()
+        
+        if not phone or not code:
+            return JsonResponse({"error": "Phone and code required"}, status=400)
+
+        # Check most recent code for this phone
+        verification = LoginCode.objects.filter(
+            phone=phone, 
+            code=code, 
+            is_used=False,
+            created_at__gte=timezone.now() - datetime.timedelta(minutes=10)
+        ).last()
+
+        if not verification:
+            return JsonResponse({"error": "Invalid or expired code"}, status=400)
+
+        verification.is_used = True
+        verification.save()
+
+        # Check if user exists
+        user = User.objects.filter(phone=phone).first()
+        
+        if user:
+            # Existing user - issue full token
+            token = create_token(user)
+            return JsonResponse({
+                "status": "success",
+                "token": token,
+                "user": {
+                    "username": user.username,
+                    "user_type": user.user_type
+                }
+            })
+        else:
+            # New user - require profile completion
+            return JsonResponse({
+                "status": "partial",
+                "message": "Verify success. Please complete your profile.",
+                "phone": phone
+            })
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+
+
+@csrf_exempt
+def complete_profile(request):
+    """Step 3: For new users, set name and role."""
+    if request.method != "POST": return JsonResponse({"error": "POST required"}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        phone = data.get('phone')
+        username = data.get('username')
+        user_type = data.get('user_type') # customer | rider
+
+        if not phone or not username or not user_type:
+            return JsonResponse({"error": "Missing fields"}, status=400)
+
+        if User.objects.filter(username=username).exists():
+            return JsonResponse({"error": "Username taken"}, status=400)
+        
+        if User.objects.filter(phone=phone).exists():
+            return JsonResponse({"error": "User already exists with this phone"}, status=400)
+
+        # Create user
+        user = User.objects.create_user(
+            username=username,
+            password=str(random.random()), # No password used in this flow
+            phone=phone,
+            user_type=user_type
+        )
+        
+        token = create_token(user)
+        return JsonResponse({
+            "status": "success",
+            "token": token,
+            "user": {
+                "username": user.username,
+                "user_type": user.user_type
+            }
+        })
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+
+
+@csrf_exempt
+def login_with_password(request):
+    """Standard Username/Password login."""
+    if request.method != "POST": return JsonResponse({"error": "POST required"}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        username_input = data.get('username', '').strip()
+        password = data.get('password', '')
+
+        if not username_input or not password:
+            return JsonResponse({"error": "Username and password required"}, status=400)
+
+        # Case-insensitive lookup
         try:
             db_user = User.objects.get(username__iexact=username_input)
             auth_username = db_user.username
         except User.DoesNotExist:
             auth_username = username_input
 
-        user = authenticate(
-            username=auth_username,
-            password=data.get('password', '')
-        )
+        user = authenticate(username=auth_username, password=password)
 
-        if user:
-            token = create_token(user)
-            return JsonResponse({"message": "Login successful", "token": token})
+        if not user:
+            return JsonResponse({"error": "Invalid credentials"}, status=401)
 
-        return JsonResponse({"error": "Invalid credentials"}, status=400)
+        token = create_token(user)
+        return JsonResponse({
+            "status": "success",
+            "token": token,
+            "user": {
+                "username": user.username,
+                "user_type": user.user_type
+            }
+        })
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
 
 
 # LOGOUT — stateless, client just discards the token

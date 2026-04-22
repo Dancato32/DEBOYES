@@ -1,11 +1,13 @@
 from django.urls import path
-from .views import signup, login_view, logout_view, toggle_availability, current_user, rider_stats
+from .views import request_otp, verify_otp, complete_profile, login_with_password, logout_view, toggle_availability, current_user, rider_stats
 from .admin_views import get_admin_stats, get_all_orders, get_all_riders, manage_menu, get_all_customers, mark_order_ready, confirm_order, confirm_pickup, manage_settings
 from .revenue_views import get_revenue_details
 
 urlpatterns = [
-    path('signup/', signup),
-    path('login/', login_view),
+    path('setup/otp/', request_otp),
+    path('verify/otp/', verify_otp),
+    path('complete/profile/', complete_profile),
+    path('login/password/', login_with_password),
     path('logout/', logout_view),
     path('me/', current_user),
     path('availability/', toggle_availability),
