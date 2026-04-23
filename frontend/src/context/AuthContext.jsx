@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { requestOTP, verifyOTP, googleLogin, completeProfile, authPasswordLogin, authLogout, getCurrentUser } from '../services/api'
+import { authSignupPassword, authPasswordLogin, googleLogin, authLogout, getCurrentUser } from '../services/api'
 import { toast } from 'react-toastify'
 
 const AuthContext = createContext(null)
@@ -32,25 +32,19 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false))
   }, [])
 
-  const login = async (identifier, code) => {
-    // identifier can be { phone } or { email }
+  const login = async (usernameOrEmail, password) => {
     try {
-      const response = await verifyOTP({ ...identifier, code })
-      const { status, token, user: userData, email, phone } = response.data
-
-      if (status === 'partial') {
-        return { status: 'partial', phone, email }
-      }
-
+      const response = await authPasswordLogin({ username: usernameOrEmail, password })
+      const { token, user: userData } = response.data
+      
       localStorage.setItem('authToken', token)
       setUser(userData)
       setIsAuthenticated(true)
       toast.success(`Welcome back, ${userData.username}!`)
       
       handleRedirect(userData)
-      return { status: 'success' }
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Verification failed')
+      toast.error(error.response?.data?.error || 'Invalid credentials')
       throw error
     }
   }
@@ -77,36 +71,21 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const loginWithPassword = async (username, password) => {
-    try {
-      const response = await authPasswordLogin({ username, password })
-      const { token, user: userData } = response.data
-      
-      localStorage.setItem('authToken', token)
-      setUser(userData)
-      setIsAuthenticated(true)
-      toast.success(`Welcome back, ${userData.username}!`)
-      
-      handleRedirect(userData)
-    } catch (error) {
-      toast.error(error.response?.data?.error || 'Invalid credentials')
-      throw error
-    }
-  }
+
 
   const signup = async (payload) => {
     try {
-      const response = await completeProfile(payload)
+      const response = await authSignupPassword(payload)
       const { token, user: userData } = response.data
       
       localStorage.setItem('authToken', token)
       setUser(userData)
       setIsAuthenticated(true)
-      toast.success('Profile completed!')
+      toast.success('Account created successfully!')
       
       handleRedirect(userData)
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Profile setup failed')
+      toast.error(error.response?.data?.error || 'Signup failed')
       throw error
     }
   }
@@ -121,16 +100,7 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const sendCode = async (identifier) => {
-    // identifier can be { phone } or { email }
-    try {
-      await requestOTP(identifier)
-      toast.info('Verification code sent!')
-    } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to send code')
-      throw error
-    }
-  }
+
 
   const logout = async () => {
     try {
@@ -144,7 +114,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, loading, login, loginWithGoogle, loginWithPassword, signup, logout, sendCode }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, loading, login, loginWithGoogle, signup, logout }}>
       {children}
     </AuthContext.Provider>
   )

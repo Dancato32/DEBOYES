@@ -15,125 +15,32 @@ from google.auth.transport import requests as google_requests
 
 User = get_user_model()
 
-# ──────────────────────────────────────────────
-# BOLT/YANGO STYLE AUTH FLOW
-# ──────────────────────────────────────────────
-
 @csrf_exempt
-def request_otp(request):
-    """Step 1: Accept phone OR email and send/log a 4-digit code."""
+def signup_with_password(request):
+    """Traditional Email/Username & Password Signup."""
     if request.method != "POST": return JsonResponse({"error": "POST required"}, status=405)
     
     try:
         data = json.loads(request.body)
-        phone = data.get('phone', '').strip()
         email = data.get('email', '').strip()
+        username = data.get('username', '').strip()
+        password = data.get('password', '')
+        user_type = data.get('user_type', 'customer')
+
+        if not email or not username or not password:
+            return JsonResponse({"error": "Email, username, and password are required"}, status=400)
+
+        if User.objects.filter(username__iexact=username).exists():
+            return JsonResponse({"error": "Username is already taken"}, status=400)
         
-        if not phone and not email:
-            return JsonResponse({"error": "Phone or Email required"}, status=400)
-
-        # Generate 4-digit code
-        code = str(random.randint(1000, 9999))
-        
-        # Save to DB
-        LoginCode.objects.create(phone=phone, email=email, code=code)
-        
-        if email:
-            send_otp_email(email, code)
-        elif phone:
-            send_arkesel_sms(phone, code)
-        
-        return JsonResponse({"message": "Code sent"})
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=400)
-
-
-@csrf_exempt
-def verify_otp(request):
-    """Step 2: Verify code and return JWT + user status."""
-    if request.method != "POST": return JsonResponse({"error": "POST required"}, status=405)
-    
-    try:
-        data = json.loads(request.body)
-        phone = data.get('phone', '').strip()
-        email = data.get('email', '').strip()
-        code = data.get('code', '').strip()
-        
-        if (not phone and not email) or not code:
-            return JsonResponse({"error": "Identifier and code required"}, status=400)
-
-        # Check most recent code
-        filter_kwargs = {"code": code, "is_used": False, "created_at__gte": timezone.now() - datetime.timedelta(minutes=10)}
-        if email: filter_kwargs["email"] = email
-        else: filter_kwargs["phone"] = phone
-        
-        verification = LoginCode.objects.filter(**filter_kwargs).last()
-
-        if not verification:
-            return JsonResponse({"error": "Invalid or expired code"}, status=400)
-
-        verification.is_used = True
-        verification.save()
-
-        # Check if user exists
-        if email:
-            user = User.objects.filter(email=email).first()
-        else:
-            user = User.objects.filter(phone=phone).first()
-        
-        if user:
-            token = create_token(user)
-            return JsonResponse({
-                "status": "success",
-                "token": token,
-                "user": {
-                    "username": user.username,
-                    "user_type": user.user_type
-                }
-            })
-        else:
-            # New user - require profile completion
-            return JsonResponse({
-                "status": "partial",
-                "message": "Verify success. Please complete your profile.",
-                "phone": phone,
-                "email": email
-            })
-
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=400)
-
-
-@csrf_exempt
-def complete_profile(request):
-    """Step 3: For new users, set name and role."""
-    if request.method != "POST": return JsonResponse({"error": "POST required"}, status=405)
-    
-    try:
-        data = json.loads(request.body)
-        phone = data.get('phone')
-        email = data.get('email')
-        username = data.get('username')
-        user_type = data.get('user_type') # customer | rider
-
-        if not username or not user_type:
-            return JsonResponse({"error": "Missing fields"}, status=400)
-
-        if User.objects.filter(username=username).exists():
-            return JsonResponse({"error": "Username taken"}, status=400)
-        
-        if phone and User.objects.filter(phone=phone).exists():
-            return JsonResponse({"error": "User already exists with this phone"}, status=400)
-        
-        if email and User.objects.filter(email=email).exists():
-            return JsonResponse({"error": "User already exists with this email"}, status=400)
+        if User.objects.filter(email__iexact=email).exists():
+            return JsonResponse({"error": "Email is already registered"}, status=400)
 
         # Create user
         user = User.objects.create_user(
             username=username,
-            email=email or "",
-            password=str(random.random()), # No password used in this flow
-            phone=phone,
+            email=email,
+            password=password,
             user_type=user_type
         )
         
@@ -202,23 +109,32 @@ def google_login(request):
 
 @csrf_exempt
 def login_with_password(request):
-    """Standard Username/Password login."""
+    """Standard Email/Username & Password login."""
     if request.method != "POST": return JsonResponse({"error": "POST required"}, status=405)
     
     try:
         data = json.loads(request.body)
-        username_input = data.get('username', '').strip()
+        identifier = data.get('username', '').strip() # can be email or username
         password = data.get('password', '')
 
-        if not username_input or not password:
-            return JsonResponse({"error": "Username and password required"}, status=400)
+        if not identifier or not password:
+            return JsonResponse({"error": "Email/Username and password required"}, status=400)
 
-        # Case-insensitive lookup
-        try:
-            db_user = User.objects.get(username__iexact=username_input)
-            auth_username = db_user.username
-        except User.DoesNotExist:
-            auth_username = username_input
+        auth_username = None
+        # Check if input looks like an email
+        if '@' in identifier:
+            db_user = User.objects.filter(email__iexact=identifier).first()
+            if db_user:
+                auth_username = db_user.username
+        else:
+            try:
+                db_user = User.objects.get(username__iexact=identifier)
+                auth_username = db_user.username
+            except User.DoesNotExist:
+                pass
+
+        if not auth_username:
+             return JsonResponse({"error": "Invalid credentials"}, status=401)
 
         user = authenticate(username=auth_username, password=password)
 
