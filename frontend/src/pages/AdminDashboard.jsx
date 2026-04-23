@@ -39,7 +39,6 @@ export default function AdminDashboard() {
   }
 
   useAdminSocket((update) => {
-    // Refresh all data when any relevant event occurs
     loadData()
   })
 
@@ -48,25 +47,25 @@ export default function AdminDashboard() {
   }, [])
 
   return (
-    <div className="space-y-10 py-6">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div className="space-y-8 py-6 max-w-7xl mx-auto px-4 sm:px-6">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-200 pb-6">
         <div>
-          <h1 className="text-3xl font-bold font-poppins text-brand-deep-dark tracking-tight">Good morning, Admin</h1>
-          <p className="mt-2 text-brand-charcoal font-medium font-inter text-sm">Here's what's happening with <span className="font-pacifico text-brand-red lowercase text-lg">De Boye's</span> today.</p>
+          <h1 className="text-2xl font-semibold text-slate-900 tracking-tight font-inter">Overview</h1>
+          <p className="mt-1 text-slate-500 text-sm">Here's what's happening with your store today.</p>
         </div>
         
         {/* Persistence Alert Helper */}
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-3 flex items-center gap-3 animate-pulse">
-           <span className="text-xl">⚠️</span>
+        <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 flex items-start gap-3">
+           <span className="text-amber-500 mt-0.5">⚠️</span>
            <div>
-             <p className="text-[10px] font-black text-amber-800 uppercase tracking-widest font-inter">Persistence Check</p>
-             <p className="text-[11px] text-amber-700 font-medium font-inter">Ensure DATABASE_URL is set in Render for permanent storage.</p>
+             <p className="text-xs font-semibold text-amber-800 uppercase tracking-wide">Persistence Check</p>
+             <p className="text-xs text-amber-700 mt-1">Ensure DATABASE_URL is set in Render for permanent storage.</p>
            </div>
         </div>
       </header>
 
       {/* Stats Cards */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
           { 
             label: 'Total orders today', 
@@ -74,8 +73,8 @@ export default function AdminDashboard() {
             trend: stats.order_trend, 
             path: '/admin/orders',
             icon: (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
               </svg>
             )
           },
@@ -85,30 +84,30 @@ export default function AdminDashboard() {
             trend: stats.rider_trend, 
             path: '/admin/riders',
             icon: (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             )
           },
           { 
-            label: `Revenue today (${stats.today_deliveries} dlv)`, 
+            label: `Revenue today`, 
             value: `₵${stats.total_revenue}`, 
-            trend: stats.revenue_trend, 
+            trend: `${stats.today_deliveries} deliveries`, 
             path: '/admin/revenue',
             icon: (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             )
           },
           { 
-            label: `Lifetime Revenue (${stats.lifetime_deliveries} total)`, 
+            label: `Lifetime Revenue`, 
             value: `₵${stats.lifetime_revenue}`, 
-            trend: 'All-time performance', 
+            trend: `${stats.lifetime_deliveries} total dlv`, 
             path: '/admin/revenue',
             icon: (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             )
           },
@@ -116,55 +115,55 @@ export default function AdminDashboard() {
           <Link 
             key={i} 
             to={card.path}
-            className="group rounded-[2.5rem] bg-white p-8 shadow-soft border border-[#F0E8D8] transition-all hover:border-brand-red/50 hover:shadow-lg"
+            className="group flex flex-col justify-between rounded-lg bg-white p-5 border border-slate-200 transition-shadow hover:shadow-sm"
           >
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-cream text-brand-red transition-all group-hover:scale-110 group-hover:bg-brand-red group-hover:text-white">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-slate-500">{card.label}</p>
               {card.icon}
             </div>
-            <div className="mt-6">
-              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-brand-charcoal font-inter">{card.label}</p>
-              <h2 className="mt-1 text-4xl font-bold font-poppins text-brand-deep-dark tracking-tight">{card.value}</h2>
-              <p className="mt-4 text-[10px] font-bold uppercase tracking-widest text-brand-red font-inter">{card.trend}</p>
+            <div className="mt-4">
+              <h2 className="text-2xl font-bold text-slate-900 font-inter">{card.value}</h2>
+              <p className="mt-1 text-xs text-slate-500 font-medium">{card.trend}</p>
             </div>
           </Link>
         ))}
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-[2fr_1fr]">
-        <section className="rounded-[2.5rem] bg-white p-8 shadow-soft border border-[#F0E8D8]">
-          <h2 className="text-xl font-bold font-poppins text-brand-deep-dark">Recent Orders</h2>
+      <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+        <section className="rounded-lg bg-white border border-slate-200 overflow-hidden">
+          <div className="border-b border-slate-200 px-6 py-4">
+            <h2 className="text-base font-semibold text-slate-900">Recent Orders</h2>
+          </div>
 
-          <div className="mt-10 overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-[#F0E8D8] text-[10px] font-bold uppercase tracking-widest text-brand-charcoal font-inter">
-                  <th className="pb-5 pl-2">ID</th>
-                  <th className="pb-5">Timestamp</th>
-                  <th className="pb-5">Customer</th>
-                  <th className="pb-5">Rider</th>
-                  <th className="pb-5">Items</th>
-                  <th className="pb-5 text-right pr-2">Total</th>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm whitespace-nowrap">
+              <thead className="bg-slate-50">
+                <tr>
+                  <th className="px-6 py-3 font-semibold text-slate-900">Order ID</th>
+                  <th className="px-6 py-3 font-semibold text-slate-900">Date & Time</th>
+                  <th className="px-6 py-3 font-semibold text-slate-900">Customer</th>
+                  <th className="px-6 py-3 font-semibold text-slate-900">Rider</th>
+                  <th className="px-6 py-3 font-semibold text-slate-900 text-right">Total</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#F0E8D8]">
+              <tbody className="divide-y divide-slate-200 bg-white">
                 {orders.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="py-10 text-center text-sm font-medium text-brand-charcoal font-inter">No orders found.</td>
+                    <td colSpan="5" className="px-6 py-10 text-center text-slate-500">No orders found.</td>
                   </tr>
                 ) : (
                   orders.map((order) => (
-                    <tr key={order.id} className="group hover:bg-brand-cream/40 transition-colors">
-                      <td className="py-6 pl-2 font-mono text-[11px] text-brand-charcoal/60">#{order.id}</td>
-                      <td className="py-6">
+                    <tr key={order.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-6 py-4 font-mono text-xs text-slate-500">#{order.id}</td>
+                      <td className="px-6 py-4">
                         <div className="flex flex-col">
-                          <span className="text-sm font-semibold text-brand-deep-dark font-inter">{order.date}</span>
-                          <span className="text-[10px] text-brand-charcoal font-medium font-inter">{order.time}</span>
+                          <span className="text-slate-900 font-medium">{order.date}</span>
+                          <span className="text-slate-500 text-xs">{order.time}</span>
                         </div>
                       </td>
-                      <td className="py-6 text-sm font-semibold text-brand-deep-dark font-inter">{order.customer}</td>
-                      <td className="py-6 text-sm font-semibold text-emerald-600">{order.rider}</td>
-                      <td className="py-6 text-xs text-brand-charcoal font-medium font-inter leading-relaxed">{order.items}</td>
-                      <td className="py-6 text-right pr-2 font-bold text-lg text-brand-red font-poppins">₵{order.total}</td>
+                      <td className="px-6 py-4 text-slate-900 font-medium">{order.customer}</td>
+                      <td className="px-6 py-4 text-emerald-600 font-medium">{order.rider}</td>
+                      <td className="px-6 py-4 text-right font-medium text-slate-900">₵{order.total}</td>
                     </tr>
                   ))
                 )}
@@ -173,27 +172,33 @@ export default function AdminDashboard() {
           </div>
         </section>
 
-        <section className="rounded-[2.5rem] bg-white p-8 shadow-soft border border-[#F0E8D8]">
-          <div className="flex items-center justify-between border-b border-[#F0E8D8] pb-6">
-            <h2 className="text-xl font-bold font-poppins text-brand-deep-dark">Riders Live</h2>
-            <span className="text-[10px] font-bold uppercase tracking-widest bg-brand-red text-white px-3 py-1 rounded-full font-inter">{riders.length} Online</span>
+        <section className="rounded-lg bg-white border border-slate-200 flex flex-col">
+          <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+            <h2 className="text-base font-semibold text-slate-900">Active Riders</h2>
+            <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
+              {riders.length} Online
+            </span>
           </div>
 
-          <div className="mt-8 space-y-5">
-            {riders.map((r) => (
-              <div key={r.id} className="flex items-center gap-4 rounded-[1.5rem] bg-brand-cream/30 p-5 transition hover:bg-brand-cream/60 border border-transparent hover:border-brand-red/10">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm border border-[#F0E8D8] font-bold text-brand-red font-poppins text-lg">
-                  {r.initials}
+          <div className="divide-y divide-slate-200 flex-1">
+            {riders.length === 0 ? (
+               <div className="px-6 py-10 text-center text-sm text-slate-500">No active riders.</div>
+            ) : (
+              riders.map((r) => (
+                <div key={r.id} className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 transition-colors">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 font-medium text-slate-700">
+                    {r.initials}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-900 truncate">{r.username}</p>
+                    <p className="text-xs text-slate-500 truncate">{r.area}</p>
+                  </div>
+                  <div className={`h-2 w-2 rounded-full ${
+                    r.status === 'Online' ? 'bg-emerald-500' : 'bg-slate-300'
+                  }`} />
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-brand-deep-dark font-inter">{r.username}</p>
-                  <p className="text-[10px] font-medium text-brand-charcoal uppercase tracking-widest font-inter">{r.area}</p>
-                </div>
-                <div className={`h-2.5 w-2.5 rounded-full ${
-                  r.status === 'Online' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)] animate-pulse' : 'bg-[#E5DFD3]'
-                }`} />
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </section>
       </div>

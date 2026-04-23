@@ -10,6 +10,8 @@ from .auth import create_token, token_required
 from .models import LoginCode
 from .email_utils import send_otp_email
 from .sms_utils import send_arkesel_sms
+from rest_framework import generics, permissions
+from .serializers import RegisterSerializer, UserSerializer
 
 
 User = get_user_model()
@@ -204,3 +206,16 @@ def rider_stats(request):
         "rating": float(request.user.rating),
         "is_available": request.user.is_available
     })
+
+# --- DRF CLASSES FOR MOBILE PERSISTENCE ---
+class DRFRegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    permission_classes = (permissions.AllowAny,)
+    serializer_class = RegisterSerializer
+
+class DRFUserProfileView(generics.RetrieveAPIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = UserSerializer
+
+    def get_object(self):
+        return self.request.user
