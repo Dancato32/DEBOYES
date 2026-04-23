@@ -61,8 +61,13 @@ export default function CustomerDashboard() {
   return (
     <div className="min-h-screen bg-slate-50 pb-32">
       {/* Clean Header Section */}
-      <div className="bg-white border-b border-slate-200 px-6 py-8">
-        <div className="max-w-7xl mx-auto">
+      <div className="bg-white border-b border-slate-200 px-6 py-8 relative overflow-hidden">
+        {/* Background Logo Watermark */}
+        <div className="absolute right-[-20px] top-[-20px] opacity-[0.03] pointer-events-none">
+          <img src="/logo.png" alt="" className="h-64 w-64 object-contain" />
+        </div>
+        
+        <div className="max-w-7xl mx-auto relative z-10">
           <header className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-700">

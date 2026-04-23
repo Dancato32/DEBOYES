@@ -264,45 +264,45 @@ export default function Checkout() {
       </header>
 
       <div className="max-w-7xl mx-auto pt-8 px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-10 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-8 items-start">
           
           {/* LEFT COLUMN: Delivery Details */}
           <div className="space-y-6">
-            <div className="bg-white rounded-[2.5rem] p-8 shadow-soft border border-[#F0E8D8] space-y-8">
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200 space-y-6">
               {/* Integrated Header removed for cleaner look */}
 
               {/* USE MY LOCATION BUTTON */}
               {/* Simplified Location Button */}
-              <div className="flex justify-between items-center bg-brand-cream/30 p-4 rounded-2xl border border-brand-cream hover:bg-brand-cream/50 transition-colors group cursor-pointer" onClick={handleUseLocation}>
+              <div className="flex justify-between items-center bg-slate-50 p-4 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors group cursor-pointer" onClick={handleUseLocation}>
                 <div className="flex items-center gap-4">
-                  <div className={`h-10 w-10 flex items-center justify-center rounded-xl bg-brand-red text-white transition-transform group-hover:scale-110 ${locating ? 'animate-spin' : ''}`}>
+                  <div className={`h-10 w-10 flex items-center justify-center rounded-lg bg-brand-red text-white transition-transform group-hover:scale-105 ${locating ? 'animate-spin' : ''}`}>
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-brand-deep-dark font-poppins">{locating ? 'Detecting...' : 'Locate Me'}</p>
-                    <p className="text-[10px] text-slate-400 font-inter uppercase tracking-widest">{locating ? 'GPS Active' : 'Auto-detect Address'}</p>
+                    <p className="text-sm font-bold text-slate-900 font-inter">{locating ? 'Detecting...' : 'Locate Me'}</p>
+                    <p className="text-[10px] text-slate-500 font-inter uppercase tracking-widest">{locating ? 'GPS Active' : 'Auto-detect Address'}</p>
                   </div>
                 </div>
-                <button className="text-brand-red font-black text-[10px] uppercase tracking-widest bg-white px-3 py-1.5 rounded-lg shadow-sm border border-brand-red/10">Detect</button>
+                <button className="text-brand-red font-bold text-xs uppercase tracking-widest bg-white px-3 py-1.5 rounded border border-slate-200">Detect</button>
               </div>
 
               {/* Mini map preview */}
               {showMap && coords && (
-                <div className="rounded-[2rem] overflow-hidden border-2 border-[#F0E8D8] shadow-inner animate-in fade-in slide-in-from-top-4 duration-500" style={{ height: '240px' }}>
+                <div className="rounded-lg overflow-hidden border border-slate-200 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500" style={{ height: '240px' }}>
                   <div ref={mapRef} className="h-full w-full" />
                 </div>
               )}
 
               {/* Detected location badge */}
               {coords && address && (
-                <div className="flex items-start gap-4 p-5 rounded-3xl bg-emerald-50 border border-emerald-100 animate-in zoom-in-95 duration-300">
-                  <div className="h-10 w-10 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xl shrink-0 shadow-sm">✓</div>
+                <div className="flex items-start gap-4 p-4 rounded-lg bg-emerald-50 border border-emerald-100 animate-in zoom-in-95 duration-300">
+                  <div className="h-8 w-8 rounded-full bg-emerald-500 flex items-center justify-center text-white text-base shrink-0 shadow-sm">✓</div>
                   <div>
-                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest font-inter">Auto-detected Address</p>
-                    <p className="text-base text-emerald-900 mt-1 font-bold leading-snug font-inter">{address}</p>
-                    {area && <p className="text-xs text-emerald-600 mt-1.5 font-black uppercase tracking-widest font-inter flex items-center gap-1.5">
+                    <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest font-inter">Auto-detected Address</p>
+                    <p className="text-sm text-emerald-900 mt-1 font-semibold leading-snug font-inter">{address}</p>
+                    {area && <p className="text-xs text-emerald-600 mt-1.5 font-bold uppercase tracking-widest font-inter flex items-center gap-1.5">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
                       Zone: {area}
                     </p>}
@@ -312,7 +312,7 @@ export default function Checkout() {
 
               <div className="h-2"></div>
 
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <div>
                   <input 
                     id="address"
@@ -320,7 +320,7 @@ export default function Checkout() {
                     value={address}
                     onChange={e => setAddress(e.target.value)}
                     placeholder="Full Address / Landmark" 
-                    className="w-full bg-slate-50 border border-[#F0E8D8] rounded-[20px] px-6 py-4 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-brand-red outline-none font-inter transition-all shadow-sm"
+                    className="w-full bg-white border border-slate-200 rounded-lg px-4 py-3 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-brand-red outline-none font-inter transition-all shadow-sm"
                   />
                 </div>
                 <div>
@@ -330,7 +330,7 @@ export default function Checkout() {
                     value={area}
                     onChange={e => setArea(e.target.value)}
                     placeholder="Neighborhood / Area" 
-                    className="w-full bg-slate-50 border border-[#F0E8D8] rounded-[20px] px-6 py-4 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-brand-red outline-none font-inter transition-all shadow-sm"
+                    className="w-full bg-white border border-slate-200 rounded-lg px-4 py-3 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-brand-red outline-none font-inter transition-all shadow-sm"
                   />
                 </div>
               </div>
@@ -338,18 +338,18 @@ export default function Checkout() {
           </div>
 
           {/* RIGHT COLUMN: Order Review */}
-          <div className="space-y-6 lg:sticky lg:top-28">
-            <div className="bg-white rounded-[2.5rem] p-8 shadow-soft border border-[#F0E8D8] space-y-8">
-              <div className="flex items-center justify-between mb-4">
-                 <h2 className="text-sm font-black uppercase tracking-widest text-brand-deep-dark font-poppins">Order Summary</h2>
+          <div className="space-y-6 lg:sticky lg:top-24">
+            <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200 space-y-6">
+              <div className="flex items-center justify-between mb-2">
+                 <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500 font-inter">Order Summary</h2>
                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{cartItems.length} Items</span>
               </div>
               
-              <div className="divide-y divide-[#F0E8D8]">
+              <div className="divide-y divide-slate-100">
                 {cartItems.map(item => (
-                  <div key={item.food_id} className="py-5 flex items-center justify-between group">
+                  <div key={item.food_id} className="py-4 flex items-center justify-between group">
                     <div className="flex items-center gap-4">
-                       <div className="h-14 w-14 flex items-center justify-center rounded-2xl bg-brand-cream text-2xl overflow-hidden shrink-0 border border-[#F0E8D8] shadow-sm transform transition-transform group-hover:scale-105">
+                       <div className="h-12 w-12 flex items-center justify-center rounded-lg bg-slate-50 text-xl overflow-hidden shrink-0 border border-slate-200 shadow-sm">
                          {item.image ? (
                            <img src={`${import.meta.env.VITE_API_URL || ''}${item.image}`} alt={item.name} className="h-full w-full object-cover" />
                          ) : (
@@ -357,23 +357,23 @@ export default function Checkout() {
                          )}
                        </div>
                        <div>
-                         <p className="font-black text-base text-brand-deep-dark leading-tight font-poppins">{item.name}</p>
-                         <p className="text-xs font-black text-brand-red mt-1 font-inter uppercase tracking-widest">₵{item.price}</p>
+                         <p className="font-bold text-sm text-slate-900 leading-tight font-inter">{item.name}</p>
+                         <p className="text-xs font-bold text-brand-red mt-1 font-inter uppercase tracking-widest">₵{item.price}</p>
                        </div>
                     </div>
 
                     <div className="flex flex-col items-end gap-2">
-                      <div className="flex items-center gap-4 bg-brand-cream/50 rounded-2xl px-3 py-1.5 border border-[#F0E8D8]">
+                      <div className="flex items-center gap-3 bg-slate-50 rounded-lg px-2 py-1 border border-slate-200">
                         <button 
                           onClick={() => updateQty(item.food_id, item.qty - 1)}
-                          className="h-6 w-6 flex items-center justify-center rounded-lg bg-white text-slate-600 shadow-sm active:scale-75 transition-transform border border-[#F0E8D8]"
+                          className="h-6 w-6 flex items-center justify-center rounded bg-white text-slate-600 shadow-sm active:scale-75 transition-transform border border-slate-200"
                         >
                           -
                         </button>
-                        <span className="font-black text-sm font-inter w-6 text-center">{item.qty}</span>
+                        <span className="font-bold text-sm font-inter w-4 text-center">{item.qty}</span>
                         <button 
                           onClick={() => updateQty(item.food_id, item.qty + 1)}
-                          className="h-6 w-6 flex items-center justify-center rounded-lg bg-brand-red text-white shadow-md shadow-brand-red/20 active:scale-75 transition-transform"
+                          className="h-6 w-6 flex items-center justify-center rounded bg-brand-red text-white shadow-sm active:scale-75 transition-transform"
                         >
                           +
                         </button>
@@ -384,92 +384,89 @@ export default function Checkout() {
               </div>
 
               {/* Invoice Table */}
-              <div className="pt-6 space-y-4">
-                 <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-[0.2em] font-inter">
-                   <span>Items Subtotal</span>
-                   <span className="text-slate-800 font-black">₵{total.toFixed(2)}</span>
+              <div className="pt-4 space-y-3">
+                 <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-widest font-inter">
+                   <span>Subtotal</span>
+                   <span className="text-slate-800">₵{total.toFixed(2)}</span>
                  </div>
-                 <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-[0.2em] font-inter">
+                 <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-widest font-inter">
                     <div className="flex items-center gap-2">
-                      <span>Delivery Service</span>
+                      <span>Delivery</span>
                       {feeZone && (
-                        <span className="bg-brand-cream text-brand-charcoal/60 px-2 py-0.5 rounded-lg text-[8px] font-black border border-[#F0E8D8]">
+                        <span className="bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded text-[8px] font-bold border border-slate-200">
                           {feeZone}
                         </span>
                       )}
                     </div>
-                    <span className={`${calculatingFee ? 'animate-pulse opacity-40' : 'text-emerald-500'} font-black`}>
+                    <span className={`${calculatingFee ? 'animate-pulse opacity-40' : 'text-emerald-600'} font-bold`}>
                       ₵{deliveryFee.toFixed(2)}
                     </span>
                   </div>
-                 <div className="border-t-2 border-brand-cream pt-6 flex items-center justify-between">
-                   <span className="text-lg font-black text-brand-deep-dark font-poppins tracking-tighter uppercase underline decoration-brand-red/30 decoration-4">Grand Total</span>
-                   <span className="text-3xl font-black font-poppins text-brand-red tracking-tighter animate-pulse">₵{grandTotal.toFixed(2)}</span>
+                 <div className="border-t border-slate-100 pt-4 flex items-center justify-between">
+                   <span className="text-sm font-bold text-slate-900 font-inter uppercase">Grand Total</span>
+                   <span className="text-2xl font-bold font-inter text-brand-red tracking-tight">₵{grandTotal.toFixed(2)}</span>
                  </div>
-              </div>
-
-              {/* Payment Method Selector */}
-              <div className="space-y-4">
-                <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-brand-charcoal font-inter">Payment Method</h3>
+               {/* Payment Method Selector */}
+              <div className="space-y-3">
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 font-inter">Payment Method</h3>
                 <div className="grid grid-cols-2 gap-3">
                   {/* Pay on App */}
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('pay_on_app')}
-                    className={`relative p-4 rounded-2xl border-2 transition-all duration-300 text-left group ${
+                    className={`relative p-3 rounded-lg border transition-all duration-200 text-left ${
                       paymentMethod === 'pay_on_app'
-                        ? 'border-brand-red bg-brand-red/[0.04] shadow-lg shadow-brand-red/10'
-                        : 'border-[#F0E8D8] bg-white hover:border-brand-red/30 hover:bg-brand-cream/30'
+                        ? 'border-brand-red bg-red-50'
+                        : 'border-slate-200 bg-white hover:border-brand-red/30'
                     }`}
                   >
                     {paymentMethod === 'pay_on_app' && (
-                      <div className="absolute top-2.5 right-2.5 h-5 w-5 rounded-full bg-brand-red flex items-center justify-center">
-                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                      <div className="absolute top-2 right-2 h-4 w-4 rounded-full bg-brand-red flex items-center justify-center">
+                        <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                       </div>
                     )}
-                    <span className="text-2xl block mb-2">📱</span>
-                    <p className="text-xs font-black text-brand-deep-dark font-poppins leading-tight">Pay on App</p>
-                    <p className="text-[9px] text-brand-charcoal/60 font-bold font-inter mt-1 uppercase tracking-wider">MoMo • Card</p>
+                    <span className="text-xl block mb-1">📱</span>
+                    <p className="text-xs font-bold text-slate-900 font-inter leading-tight">Pay on App</p>
+                    <p className="text-[9px] text-slate-500 font-medium font-inter mt-1">MoMo • Card</p>
                   </button>
-
+ 
                   {/* Pay in Person */}
                   <button
                     type="button"
                     onClick={() => setPaymentMethod('pay_in_person')}
-                    className={`relative p-4 rounded-2xl border-2 transition-all duration-300 text-left group ${
+                    className={`relative p-3 rounded-lg border transition-all duration-200 text-left ${
                       paymentMethod === 'pay_in_person'
-                        ? 'border-brand-red bg-brand-red/[0.04] shadow-lg shadow-brand-red/10'
-                        : 'border-[#F0E8D8] bg-white hover:border-brand-red/30 hover:bg-brand-cream/30'
+                        ? 'border-brand-red bg-red-50'
+                        : 'border-slate-200 bg-white hover:border-brand-red/30'
                     }`}
                   >
                     {paymentMethod === 'pay_in_person' && (
-                      <div className="absolute top-2.5 right-2.5 h-5 w-5 rounded-full bg-brand-red flex items-center justify-center">
-                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                      <div className="absolute top-2 right-2 h-4 w-4 rounded-full bg-brand-red flex items-center justify-center">
+                        <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                       </div>
                     )}
-                    <span className="text-2xl block mb-2">💵</span>
-                    <p className="text-xs font-black text-brand-deep-dark font-poppins leading-tight">Pay in Person</p>
-                    <p className="text-[9px] text-brand-charcoal/60 font-bold font-inter mt-1 uppercase tracking-wider">Cash on Delivery</p>
+                    <span className="text-xl block mb-1">💵</span>
+                    <p className="text-xs font-bold text-slate-900 font-inter leading-tight">Pay in Person</p>
+                    <p className="text-[9px] text-slate-500 font-medium font-inter mt-1">Cash on Delivery</p>
                   </button>
                 </div>
+              </div>
+ </div>
               </div>
 
               <button 
                 onClick={handlePlaceOrder}
                 disabled={isSubmitting}
-                className={`w-full h-16 flex items-center justify-center rounded-2xl text-white shadow-2xl transition-all active:scale-[0.97] disabled:opacity-50 ${
+                className={`w-full h-14 flex items-center justify-center rounded-lg text-white shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 ${
                   paymentMethod === 'pay_on_app' 
-                    ? 'bg-emerald-600 shadow-emerald-600/30 hover:bg-emerald-700' 
-                    : 'bg-brand-red shadow-brand-red/30 hover:bg-brand-dark-red'
+                    ? 'bg-emerald-600 hover:bg-emerald-700' 
+                    : 'bg-brand-red hover:bg-brand-dark-red'
                 }`}
               >
                 <div className="flex flex-col items-center">
-                  <span className="font-black text-xs font-inter uppercase tracking-[0.3em]">
+                  <span className="font-bold text-sm font-inter uppercase tracking-widest">
                     {isSubmitting ? 'Processing...' : paymentMethod === 'pay_on_app' ? 'Pay Now' : 'Place Order'}
                   </span>
-                  {!isSubmitting && <span className="text-[9px] opacity-70 uppercase tracking-widest font-inter mt-0.5">
-                    {paymentMethod === 'pay_on_app' ? 'Secure Paystack Checkout' : 'Accra • Ghana'}
-                  </span>}
                 </div>
               </button>
             </div>
@@ -478,17 +475,17 @@ export default function Checkout() {
       </div>
 
       {/* Mobile Floating Action Button (Only on small screens) */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-md border-t border-slate-100 p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-100 p-4 shadow-lg">
         <button 
           onClick={handlePlaceOrder}
           disabled={isSubmitting}
-          className={`w-full max-w-lg mx-auto flex items-center justify-center rounded-2xl h-16 text-white shadow-xl active:scale-95 disabled:opacity-50 ${
+          className={`w-full max-w-lg mx-auto flex items-center justify-center rounded-lg h-14 text-white shadow-lg active:scale-95 disabled:opacity-50 ${
             paymentMethod === 'pay_on_app' 
-              ? 'bg-emerald-600 shadow-emerald-600/30' 
-              : 'bg-brand-red shadow-brand-red/30'
+              ? 'bg-emerald-600' 
+              : 'bg-brand-red'
           }`}
         >
-          <span className="font-black text-xs font-inter uppercase tracking-[0.3em]">
+          <span className="font-bold text-sm font-inter uppercase tracking-widest">
             {isSubmitting ? 'Processing...' : paymentMethod === 'pay_on_app' ? 'Pay Now — ₵' + grandTotal.toFixed(2) : 'Place Order — ₵' + grandTotal.toFixed(2)}
           </span>
         </button>

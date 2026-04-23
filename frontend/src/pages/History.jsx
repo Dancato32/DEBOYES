@@ -15,19 +15,19 @@ const OrderCard = ({ order, navigate, isRider }) => {
           navigate(`/track/${order.id}`)
         }
       }}
-      className={`bg-white rounded-[16px] p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer space-y-4 border-2 ${isActive ? 'border-brand-red' : 'border-[#F0E8D8]'}`}
+      className={`bg-white rounded-lg p-5 shadow-sm hover:shadow-md transition-all cursor-pointer space-y-4 border ${isActive ? 'border-brand-red ring-1 ring-brand-red/20' : 'border-slate-200'}`}
     >
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 font-inter">{order.date}</p>
           <p className="text-base font-bold font-poppins text-slate-800 tracking-tight">{isRider ? `#QB-${order.id}` : `Order #${order.id}`}</p>
         </div>
-        <span className={`px-4 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-widest shadow-sm font-inter ${
+        <span className={`px-3 py-1 rounded text-[9px] font-bold uppercase tracking-widest font-inter ${
           order.status === 'Delivered' 
-          ? 'bg-[#DCFCE7] text-[#15803D]' 
+          ? 'bg-emerald-50 text-emerald-600' 
           : isActive 
-          ? 'bg-brand-red text-white animate-pulse shadow-brand-red/30'
-          : 'bg-slate-100 text-slate-600'
+          ? 'bg-brand-red text-white'
+          : 'bg-slate-100 text-slate-500'
         }`}>
           {isActive && !isRider ? '● LIVE' : order.status}
         </span>
@@ -63,13 +63,13 @@ const OrderCard = ({ order, navigate, isRider }) => {
                navigate('/rider/active')
              }
           }}
-          className={`px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors font-inter ${
+          className={`px-4 py-2 rounded text-[10px] font-bold uppercase tracking-widest transition-colors font-inter border ${
             isActive 
-            ? 'bg-brand-red text-white shadow-lg shadow-brand-red/30 hover:bg-brand-dark-red'
-            : 'bg-brand-cream text-brand-red hover:bg-[#F0E8D8]'
+            ? 'bg-brand-red text-white border-brand-red hover:bg-brand-dark-red'
+            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
           }`}
         >
-          {isRider ? 'View Details' : (isActive ? 'Track Live ↗' : 'View Receipt')}
+          {isRider ? 'Details' : (isActive ? 'Track Live' : 'Receipt')}
         </button>
       </div>
     </div>
@@ -98,11 +98,11 @@ export default function History() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-brand-cream pb-32">
-      <header className="bg-brand-red px-6 py-5 flex items-center justify-between sticky top-0 z-[100] shadow-md border-b border-white/10">
+    <div className="min-h-screen bg-slate-50 pb-32">
+      <header className="bg-white px-6 py-5 flex items-center justify-between sticky top-0 z-[100] border-b border-slate-200">
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
-          <h1 className="text-lg font-bold font-poppins text-white uppercase tracking-widest">{isRider ? 'Trip History' : 'My Orders'}</h1>
-          <button className="h-10 w-10 flex items-center justify-center bg-white/10 text-white rounded-full hover:bg-white/20 transition-colors">
+          <h1 className="text-sm font-bold font-inter text-slate-900 uppercase tracking-widest">{isRider ? 'Trip History' : 'My Orders'}</h1>
+          <button className="h-10 w-10 flex items-center justify-center text-slate-400 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
             </svg>

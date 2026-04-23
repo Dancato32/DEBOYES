@@ -6,10 +6,10 @@ import { toast } from 'react-toastify'
 const ProfileItem = ({ label, value, icon, onClick, red }) => (
   <button 
     onClick={onClick}
-    className="w-full flex items-center justify-between p-6 rounded-[2rem] border transition-all active:scale-[0.98] bg-white border-[#F0E8D8] hover:bg-slate-50 shadow-sm"
+    className="w-full flex items-center justify-between p-4 rounded-lg border transition-all active:scale-[0.98] bg-white border-slate-200 hover:bg-slate-50 shadow-sm"
   >
     <div className="flex items-center gap-4">
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl text-xl bg-brand-cream">
+      <div className="flex h-10 w-10 items-center justify-center rounded-lg text-lg bg-slate-50">
         {icon}
       </div>
       <div className="text-left flex flex-col justify-center gap-0.5">
@@ -18,8 +18,8 @@ const ProfileItem = ({ label, value, icon, onClick, red }) => (
       </div>
     </div>
     <div className="text-slate-300">
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" />
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
       </svg>
     </div>
   </button>
@@ -53,20 +53,20 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen pb-32 bg-brand-cream text-slate-800">
-      <div className="mx-auto max-w-5xl px-6 pt-16">
-        <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-10 items-start">
+    <div className="min-h-screen pb-32 bg-slate-50 text-slate-800">
+      <div className="mx-auto max-w-5xl px-6 pt-12">
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 items-start">
 
           {/* LEFT: Avatar + Stats */}
-          <div className="lg:sticky lg:top-16 space-y-6">
+          <div className="lg:sticky lg:top-8 space-y-6">
             {/* Profile Header */}
-            <section className="flex flex-col items-center text-center space-y-5 bg-white rounded-[2.5rem] p-8 border border-[#F0E8D8] shadow-soft">
+            <section className="flex flex-col items-center text-center space-y-4 bg-white rounded-lg p-6 border border-slate-200 shadow-sm">
               <div className="relative">
-                 <div className="flex h-28 w-28 items-center justify-center rounded-[2.5rem] text-4xl font-bold font-poppins shadow-2xl bg-brand-red text-white shadow-brand-red/20">
+                 <div className="flex h-24 w-24 items-center justify-center rounded-lg text-3xl font-bold font-inter shadow-lg bg-brand-red text-white">
                    {initials}
                  </div>
-                 <div className="absolute -bottom-2 -right-2 flex h-10 w-10 items-center justify-center rounded-2xl border-4 bg-white border-brand-cream text-brand-red shadow-lg">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                 <div className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded border-2 bg-white border-slate-100 text-brand-red shadow-sm">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                     </svg>
                  </div>
@@ -79,12 +79,12 @@ export default function Profile() {
 
             {/* Stats Summary */}
             <section className="grid grid-cols-2 gap-4">
-               <div className="p-5 rounded-[2rem] border text-center bg-white border-[#F0E8D8] shadow-sm">
-                  <p className="text-2xl font-bold font-poppins text-brand-red">{user?.active_days || 1}</p>
+               <div className="p-4 rounded-lg border text-center bg-white border-slate-200 shadow-sm">
+                  <p className="text-xl font-bold font-inter text-brand-red">{user?.active_days || 1}</p>
                   <p className="text-[10px] font-bold uppercase text-slate-400 tracking-widest mt-1 font-inter">Active Days</p>
                </div>
-               <div className="p-5 rounded-[2rem] border text-center bg-white border-[#F0E8D8] shadow-sm">
-                  <p className="text-2xl font-bold font-poppins text-brand-red">{user?.membership_status || 'Bronze'}</p>
+               <div className="p-4 rounded-lg border text-center bg-white border-slate-200 shadow-sm">
+                  <p className="text-xl font-bold font-inter text-brand-red">{user?.membership_status || 'Bronze'}</p>
                   <p className="text-[10px] font-bold uppercase text-slate-400 tracking-widest mt-1 font-inter">Membership</p>
                </div>
             </section>
