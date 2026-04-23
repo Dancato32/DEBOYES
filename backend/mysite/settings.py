@@ -201,7 +201,8 @@ CORS_ALLOW_CREDENTIALS = False
 
 # CSRF Settings
 env_csrf = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
-CSRF_TRUSTED_ORIGINS = list(set([o.strip().strip('/') for o in env_csrf + default_origins if o.strip()]))
+default_csrf_origins = ['http://localhost', 'capacitor://localhost', 'http://localhost:5173', 'http://127.0.0.1:5173', 'https://frontend-production-b947.up.railway.app']
+CSRF_TRUSTED_ORIGINS = list(set([o.strip().strip('/') for o in env_csrf + default_csrf_origins if o.strip()]))
 
 # Session & Cookie settings — required for cross-domain auth (SameSite=None + Secure)
 # These must always be set so Railway can receive session cookies from Render
