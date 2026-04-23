@@ -37,6 +37,7 @@ import AdminCustomers from './pages/AdminCustomers'
 import AdminRiders from './pages/AdminRiders'
 import AdminMenu from './pages/AdminMenu'
 import AdminRevenue from './pages/AdminRevenue'
+import PrivacyPolicy from './pages/PrivacyPolicy'
 import AdminSidebar from './components/AdminSidebar'
 
 export default function App() {
@@ -83,6 +84,7 @@ export default function App() {
             <Route path="/login" element={<Navigate to="/auth" replace />} />
             <Route path="/signup" element={<Navigate to="/auth" replace />} />
             <Route path="/onboarding" element={<Navigate to="/" replace />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route
               path="/customer"
               element={

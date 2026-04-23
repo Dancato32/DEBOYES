@@ -8,11 +8,20 @@ import { AuthProvider, AuthContext } from './src/context/AuthContext';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import HomeScreen from './src/screens/HomeScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
+import PrivacyPolicyScreen from './src/screens/PrivacyPolicyScreen';
+import { setupNotifications } from './src/utils/notifications';
 
 const Stack = createNativeStackNavigator();
 
 function AppNavigator() {
   const { user, isLoading } = useContext(AuthContext);
+
+  React.useEffect(() => {
+    if (user) {
+      setupNotifications();
+    }
+  }, [user]);
 
   if (isLoading) {
     // This acts as your "Splash Screen" while checking persistence
@@ -27,7 +36,11 @@ function AppNavigator() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {user ? (
         // Authenticated Stack
-        <Stack.Screen name="Home" component={HomeScreen} />
+        <>
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+        </>
       ) : (
         // Unauthenticated Stack
         <>

@@ -2,15 +2,22 @@ import React, { useContext } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 
-export default function HomeScreen() {
+export default function HomeScreen({ navigation }) {
   const { user, logout } = useContext(AuthContext);
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <View style={styles.header}>
-        <Text style={styles.title}>Dashboard</Text>
-        <Text style={styles.subtitle}>Welcome, {user?.username}!</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <View>
+            <Text style={styles.title}>Dashboard</Text>
+            <Text style={styles.subtitle}>Welcome, {user?.username}!</Text>
+          </View>
+          <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+            <Text style={{ fontSize: 24 }}>⚙️</Text>
+          </TouchableOpacity>
+        </View>
       </View>
       
       <View style={styles.content}>

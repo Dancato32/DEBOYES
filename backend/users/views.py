@@ -219,3 +219,30 @@ class DRFUserProfileView(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+
+@csrf_exempt
+@token_required
+def delete_account(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=405)
+    
+    user = request.user
+    user.delete()
+    return JsonResponse({"status": "success", "message": "Account deleted successfully"})
+
+@csrf_exempt
+@token_required
+def update_fcm_token(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        token = data.get('token')
+        if token:
+            request.user.fcm_token = token
+            request.user.save()
+            return JsonResponse({"status": "success"})
+        return JsonResponse({"error": "Token required"}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)

@@ -22,14 +22,11 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Add debug alert for mobile APK troubleshooting
-    alert(`API Error!\nURL: ${error.config?.baseURL}${error.config?.url}\nError: ${error.message}\nData: ${JSON.stringify(error.response?.data || 'No Data')}`)
     const message = error.response?.data?.error || error.response?.data?.detail || 'An unexpected error occurred'
     console.error('API Error:', message)
     return Promise.reject(error)
   }
 )
-
 
 // Auth
 export const authSignupPassword = (payload) => api.post('auth/signup/password/', payload)
@@ -37,6 +34,8 @@ export const authPasswordLogin = (payload) => api.post('auth/login/password/', p
 export const googleLogin = (id_token) => api.post('auth/google/login/', { id_token })
 export const authLogout = () => api.post('auth/logout/')
 export const getCurrentUser = () => api.get('auth/me/')
+export const deleteAccount = () => api.post('auth/delete/')
+export const updateFCMToken = (token) => api.post('auth/fcm-token/', { token })
 
 // Menu & Orders
 export const fetchMenu = () => api.get('menu/')

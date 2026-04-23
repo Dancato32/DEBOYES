@@ -15,6 +15,7 @@ class User(AbstractUser):
     current_area = models.CharField(max_length=100, blank=True)
     last_assigned_at = models.DateTimeField(null=True, blank=True)
     rating = models.DecimalField(max_digits=3, decimal_places=1, default=5.0)
+    fcm_token = models.CharField(max_length=255, blank=True, null=True)
 
     # Dynamic Batching
     batch_open = models.BooleanField(default=False)

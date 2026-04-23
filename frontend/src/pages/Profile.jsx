@@ -1,5 +1,7 @@
 import { useAuth } from '../context/AuthContext'
 import BottomNav from '../components/BottomNav'
+import { Link } from 'react-router-dom'
+import { toast } from 'react-toastify'
 
 const ProfileItem = ({ label, value, icon, onClick, red }) => (
   <button 
@@ -27,6 +29,28 @@ export default function Profile() {
   const { user, logout } = useAuth()
   const isRider = user?.user_type === 'rider'
   const initials = user?.username?.slice(0, 2).toUpperCase() || 'U'
+
+  const handleDeleteAccount = async () => {
+    if (window.confirm("ARE YOU SURE? This will permanently delete your account and all associated data. This action cannot be undone.")) {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/delete/`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (res.ok) {
+          toast.success("Account deleted successfully");
+          logout();
+        } else {
+          toast.error("Failed to delete account");
+        }
+      } catch (err) {
+        toast.error("Error connecting to server");
+      }
+    }
+  }
 
   return (
     <div className="min-h-screen pb-32 bg-brand-cream text-slate-800">
@@ -116,6 +140,30 @@ export default function Profile() {
               } 
               red 
               onClick={logout} 
+            />
+
+            <Link to="/privacy-policy" className="block">
+              <ProfileItem 
+                label="Legal" 
+                value="Privacy Policy" 
+                icon={
+                  <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                } 
+              />
+            </Link>
+
+            <ProfileItem 
+              label="Danger Zone" 
+              value="Delete Account" 
+              icon={
+                <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              } 
+              red 
+              onClick={handleDeleteAccount} 
             />
 
             <div className="mt-8 text-center lg:hidden">

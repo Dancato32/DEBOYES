@@ -31,4 +31,8 @@ urlpatterns = [
     path('admin/orders/<int:order_id>/pickup/', admin_views.confirm_pickup),
     path('admin/revenue/', revenue_views.get_revenue_details),
     path('admin/settings/', admin_views.manage_settings),
+    
+    # Store Compliance & Notifications
+    path('delete/', views.delete_account, name='delete_account'),
+    path('fcm-token/', views.update_fcm_token, name='update_fcm_token'),
 ]
