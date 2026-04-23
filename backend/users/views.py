@@ -10,8 +10,7 @@ from .auth import create_token, token_required
 from .models import LoginCode
 from .email_utils import send_otp_email
 from .sms_utils import send_arkesel_sms
-from google.oauth2 import id_token
-from google.auth.transport import requests as google_requests
+
 
 User = get_user_model()
 
@@ -56,55 +55,6 @@ def signup_with_password(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
 
-
-@csrf_exempt
-def google_login(request):
-    """Verify Google ID Token and login/signup."""
-    if request.method != "POST": return JsonResponse({"error": "POST required"}, status=405)
-    
-    try:
-        data = json.loads(request.body)
-        id_token_str = data.get('id_token')
-        
-        # Get Client ID from settings
-        # Use a placeholder if not set yet for production
-        google_client_id = getattr(settings, 'GOOGLE_CLIENT_ID', os.environ.get('GOOGLE_CLIENT_ID', 'DUMMY_CLIENT_ID'))
-        
-        try:
-            # Specify the CLIENT_ID of the app that accesses the backend:
-            idinfo = id_token.verify_oauth2_token(id_token_str, google_requests.Request(), google_client_id)
-            
-            # ID token is valid. Get user's Google ID from the 'sub' claim.
-            email = idinfo.get('email')
-            name = idinfo.get('name', '')
-            
-            # Check if user exists
-            user = User.objects.filter(email=email).first()
-            
-            if user:
-                token = create_token(user)
-                return JsonResponse({
-                    "status": "success",
-                    "token": token,
-                    "user": {
-                        "username": user.username,
-                        "user_type": user.user_type
-                    }
-                })
-            else:
-                # Partial success - need to choose role and set username
-                return JsonResponse({
-                    "status": "partial",
-                    "message": "Google verified. Please complete your profile.",
-                    "email": email,
-                    "suggested_username": email.split('@')[0]
-                })
-
-        except ValueError:
-            return JsonResponse({"error": "Invalid token"}, status=400)
-            
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
 
 
 @csrf_exempt

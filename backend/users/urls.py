@@ -1,11 +1,11 @@
 from django.urls import path
-from .views import signup_with_password, login_with_password, google_login, logout_view, toggle_availability, current_user, rider_stats
+from .views import signup_with_password, login_with_password, logout_view, toggle_availability, current_user, rider_stats
 from .admin_views import get_admin_stats, get_all_orders, get_all_riders, manage_menu, get_all_customers, mark_order_ready, confirm_order, confirm_pickup, manage_settings
 from .revenue_views import get_revenue_details
 
 urlpatterns = [
     path('signup/password/', signup_with_password),
-    path('google/login/', google_login),
+
     path('login/password/', login_with_password),
     path('logout/', logout_view),
     path('me/', current_user),
