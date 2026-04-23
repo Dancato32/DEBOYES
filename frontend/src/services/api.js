@@ -1,11 +1,10 @@
 import axios from 'axios'
 
-const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
 const productionURL = 'https://deboyes-89k1.onrender.com'
 const localURL = 'http://localhost:8000'
 
 const api = axios.create({
-  baseURL: `${import.meta.env.VITE_API_URL || (isLocal ? localURL : productionURL)}/api/`,
+  baseURL: `${import.meta.env.VITE_API_URL || (import.meta.env.PROD ? productionURL : localURL)}/api/`,
   headers: {
     'Content-Type': 'application/json'
   }
