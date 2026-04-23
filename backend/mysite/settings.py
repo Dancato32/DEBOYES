@@ -196,12 +196,16 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # CORS Settings — cross-domain (Railway frontend <-> Render backend)
-CORS_ALLOWED_ORIGINS = [o.strip().strip('/') for o in os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost,capacitor://localhost,http://localhost:5173,http://127.0.0.1:5173,https://frontend-production-b947.up.railway.app').split(',')]
+env_origins = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',')
+default_origins = ['http://localhost', 'capacitor://localhost', 'http://localhost:5173', 'http://127.0.0.1:5173', 'https://frontend-production-b947.up.railway.app']
+CORS_ALLOWED_ORIGINS = list(set([o.strip().strip('/') for o in env_origins + default_origins if o.strip()]))
+
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = False
 
 # CSRF Settings
-CSRF_TRUSTED_ORIGINS = [o.strip().strip('/') for o in os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost,capacitor://localhost,http://localhost:5173,http://127.0.0.1:5173,https://frontend-production-b947.up.railway.app').split(',')]
+env_csrf = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
+CSRF_TRUSTED_ORIGINS = list(set([o.strip().strip('/') for o in env_csrf + default_origins if o.strip()]))
 
 # Session & Cookie settings — required for cross-domain auth (SameSite=None + Secure)
 # These must always be set so Railway can receive session cookies from Render
