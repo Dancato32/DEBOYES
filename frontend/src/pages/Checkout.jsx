@@ -451,8 +451,8 @@ export default function Checkout() {
                   </button>
                 </div>
               </div>
- </div>
-              </div>
+            </div>
+          </div>
 
               <button 
                 onClick={handlePlaceOrder}

@@ -53,7 +53,12 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen pb-32 bg-slate-50 text-slate-800">
+    <div className="min-h-screen pb-32 bg-slate-50 text-slate-800 relative overflow-hidden">
+      {/* Background Watermark */}
+      <div className="fixed -bottom-20 -left-20 opacity-[0.03] pointer-events-none -rotate-12">
+        <img src="/logo.png" alt="" className="h-[500px] w-[500px] object-contain" />
+      </div>
+
       <div className="mx-auto max-w-5xl px-6 pt-12">
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 items-start">
 
@@ -72,8 +77,8 @@ export default function Profile() {
                  </div>
               </div>
               <div>
-                <h1 className="text-3xl font-bold font-poppins text-slate-900 tracking-tight">{user?.username}</h1>
-                <p className="text-xs font-semibold mt-1 font-inter text-slate-400">{isRider ? 'Certified Rider' : 'Valued Customer'}</p>
+                <h1 className="text-2xl font-bold font-inter text-slate-900 tracking-tight">{user?.username}</h1>
+                <p className="text-[10px] font-bold uppercase mt-1 font-inter text-slate-400 tracking-widest">{isRider ? 'Certified Rider' : 'Valued Customer'}</p>
               </div>
             </section>
 

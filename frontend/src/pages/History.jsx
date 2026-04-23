@@ -98,10 +98,18 @@ export default function History() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-32">
+    <div className="min-h-screen bg-slate-50 pb-32 relative overflow-hidden">
+      {/* Background Watermark */}
+      <div className="fixed top-20 -right-20 opacity-[0.03] pointer-events-none rotate-12">
+        <img src="/logo.png" alt="" className="h-[600px] w-[600px] object-contain" />
+      </div>
+
       <header className="bg-white px-6 py-5 flex items-center justify-between sticky top-0 z-[100] border-b border-slate-200">
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
-          <h1 className="text-sm font-bold font-inter text-slate-900 uppercase tracking-widest">{isRider ? 'Trip History' : 'My Orders'}</h1>
+          <div className="flex items-center gap-3">
+             <img src="/logo.png" alt="Logo" className="h-6 w-6 object-contain opacity-20" />
+             <h1 className="text-sm font-bold font-inter text-slate-900 uppercase tracking-widest">{isRider ? 'Trip History' : 'My Orders'}</h1>
+          </div>
           <button className="h-10 w-10 flex items-center justify-center text-slate-400 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
