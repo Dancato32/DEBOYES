@@ -33,8 +33,9 @@ api.interceptors.response.use(
 
 // Auth
 // Auth (Bolt/Yango Style)
-export const requestOTP = (phone) => api.post('auth/setup/otp/', { phone })
-export const verifyOTP = (phone, code) => api.post('auth/verify/otp/', { phone, code })
+export const requestOTP = (payload) => api.post('auth/setup/otp/', payload)
+export const verifyOTP = (payload) => api.post('auth/verify/otp/', payload)
+export const googleLogin = (id_token) => api.post('auth/google/login/', { id_token })
 export const completeProfile = (payload) => api.post('auth/complete/profile/', payload)
 export const authPasswordLogin = (payload) => api.post('auth/login/password/', payload)
 export const authLogout = () => api.post('auth/logout/')

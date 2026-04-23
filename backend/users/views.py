@@ -8,7 +8,10 @@ import random
 import datetime
 from .auth import create_token, token_required
 from .models import LoginCode
+from .email_utils import send_otp_email
 from .sms_utils import send_arkesel_sms
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
 
 User = get_user_model()
 
@@ -18,22 +21,27 @@ User = get_user_model()
 
 @csrf_exempt
 def request_otp(request):
-    """Step 1: Accept phone and send/log a 4-digit code."""
+    """Step 1: Accept phone OR email and send/log a 4-digit code."""
     if request.method != "POST": return JsonResponse({"error": "POST required"}, status=405)
     
     try:
         data = json.loads(request.body)
         phone = data.get('phone', '').strip()
-        if not phone: return JsonResponse({"error": "Phone required"}, status=400)
+        email = data.get('email', '').strip()
+        
+        if not phone and not email:
+            return JsonResponse({"error": "Phone or Email required"}, status=400)
 
         # Generate 4-digit code
         code = str(random.randint(1000, 9999))
         
         # Save to DB
-        LoginCode.objects.create(phone=phone, code=code)
+        LoginCode.objects.create(phone=phone, email=email, code=code)
         
-        # REAL SMS (Professional)
-        send_arkesel_sms(phone, code)
+        if email:
+            send_otp_email(email, code)
+        elif phone:
+            send_arkesel_sms(phone, code)
         
         return JsonResponse({"message": "Code sent"})
     except Exception as e:
@@ -48,18 +56,18 @@ def verify_otp(request):
     try:
         data = json.loads(request.body)
         phone = data.get('phone', '').strip()
+        email = data.get('email', '').strip()
         code = data.get('code', '').strip()
         
-        if not phone or not code:
-            return JsonResponse({"error": "Phone and code required"}, status=400)
+        if (not phone and not email) or not code:
+            return JsonResponse({"error": "Identifier and code required"}, status=400)
 
-        # Check most recent code for this phone
-        verification = LoginCode.objects.filter(
-            phone=phone, 
-            code=code, 
-            is_used=False,
-            created_at__gte=timezone.now() - datetime.timedelta(minutes=10)
-        ).last()
+        # Check most recent code
+        filter_kwargs = {"code": code, "is_used": False, "created_at__gte": timezone.now() - datetime.timedelta(minutes=10)}
+        if email: filter_kwargs["email"] = email
+        else: filter_kwargs["phone"] = phone
+        
+        verification = LoginCode.objects.filter(**filter_kwargs).last()
 
         if not verification:
             return JsonResponse({"error": "Invalid or expired code"}, status=400)
@@ -68,10 +76,12 @@ def verify_otp(request):
         verification.save()
 
         # Check if user exists
-        user = User.objects.filter(phone=phone).first()
+        if email:
+            user = User.objects.filter(email=email).first()
+        else:
+            user = User.objects.filter(phone=phone).first()
         
         if user:
-            # Existing user - issue full token
             token = create_token(user)
             return JsonResponse({
                 "status": "success",
@@ -86,7 +96,8 @@ def verify_otp(request):
             return JsonResponse({
                 "status": "partial",
                 "message": "Verify success. Please complete your profile.",
-                "phone": phone
+                "phone": phone,
+                "email": email
             })
 
     except Exception as e:
@@ -101,21 +112,26 @@ def complete_profile(request):
     try:
         data = json.loads(request.body)
         phone = data.get('phone')
+        email = data.get('email')
         username = data.get('username')
         user_type = data.get('user_type') # customer | rider
 
-        if not phone or not username or not user_type:
+        if not username or not user_type:
             return JsonResponse({"error": "Missing fields"}, status=400)
 
         if User.objects.filter(username=username).exists():
             return JsonResponse({"error": "Username taken"}, status=400)
         
-        if User.objects.filter(phone=phone).exists():
+        if phone and User.objects.filter(phone=phone).exists():
             return JsonResponse({"error": "User already exists with this phone"}, status=400)
+        
+        if email and User.objects.filter(email=email).exists():
+            return JsonResponse({"error": "User already exists with this email"}, status=400)
 
         # Create user
         user = User.objects.create_user(
             username=username,
+            email=email or "",
             password=str(random.random()), # No password used in this flow
             phone=phone,
             user_type=user_type
@@ -132,6 +148,56 @@ def complete_profile(request):
         })
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
+
+
+@csrf_exempt
+def google_login(request):
+    """Verify Google ID Token and login/signup."""
+    if request.method != "POST": return JsonResponse({"error": "POST required"}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        id_token_str = data.get('id_token')
+        
+        # Get Client ID from settings
+        # Use a placeholder if not set yet for production
+        google_client_id = getattr(settings, 'GOOGLE_CLIENT_ID', os.environ.get('GOOGLE_CLIENT_ID', 'DUMMY_CLIENT_ID'))
+        
+        try:
+            # Specify the CLIENT_ID of the app that accesses the backend:
+            idinfo = id_token.verify_oauth2_token(id_token_str, google_requests.Request(), google_client_id)
+            
+            # ID token is valid. Get user's Google ID from the 'sub' claim.
+            email = idinfo.get('email')
+            name = idinfo.get('name', '')
+            
+            # Check if user exists
+            user = User.objects.filter(email=email).first()
+            
+            if user:
+                token = create_token(user)
+                return JsonResponse({
+                    "status": "success",
+                    "token": token,
+                    "user": {
+                        "username": user.username,
+                        "user_type": user.user_type
+                    }
+                })
+            else:
+                # Partial success - need to choose role and set username
+                return JsonResponse({
+                    "status": "partial",
+                    "message": "Google verified. Please complete your profile.",
+                    "email": email,
+                    "suggested_username": email.split('@')[0]
+                })
+
+        except ValueError:
+            return JsonResponse({"error": "Invalid token"}, status=400)
+            
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 @csrf_exempt

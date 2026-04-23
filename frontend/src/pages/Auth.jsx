@@ -3,15 +3,17 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'react-toastify'
+import { GoogleLogin } from '@react-oauth/google'
 
 export default function Auth() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, isAuthenticated, sendCode, login, loginWithPassword, signup, loading: authLoading } = useAuth()
+  const { user, isAuthenticated, sendCode, login, loginWithGoogle, loginWithPassword, signup, loading: authLoading } = useAuth()
 
-  // Steps: 'PHONE' | 'OTP' | 'PROFILE' | 'PASSWORD'
-  const [step, setStep] = useState('PHONE')
-  const [phone, setPhone] = useState('')
+  // Steps: 'EMAIL' | 'OTP' | 'PROFILE' | 'PASSWORD'
+  const [step, setStep] = useState('EMAIL')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('') // Kept for legacy/profile
   const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
   
@@ -24,6 +26,8 @@ export default function Auth() {
   // Profile fields for new users
   const [profileData, setProfileData] = useState({
     username: '',
+    email: '',
+    phone: '',
     user_type: 'customer'
   })
 
@@ -34,16 +38,35 @@ export default function Auth() {
     }
   }, [isAuthenticated, user, navigate])
 
-  const handlePhoneSubmit = async (e) => {
+  const handleEmailSubmit = async (e) => {
     e.preventDefault()
-    if (phone.length < 9) {
-      toast.error('Please enter a valid phone number')
+    if (!email.includes('@')) {
+      toast.error('Please enter a valid email address')
       return
     }
     setLoading(true)
     try {
-      await sendCode(phone)
+      await sendCode({ email })
       setStep('OTP')
+    } catch (err) {
+      // Error handled in context
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setLoading(true)
+    try {
+      const result = await loginWithGoogle(credentialResponse.credential)
+      if (result.status === 'partial') {
+        setProfileData({
+          ...profileData,
+          email: result.email,
+          username: result.suggested_username || ''
+        })
+        setStep('PROFILE')
+      }
     } catch (err) {
       // Error handled in context
     } finally {
@@ -57,8 +80,9 @@ export default function Auth() {
     
     setLoading(true)
     try {
-      const result = await login(phone, code)
+      const result = await login({ email }, code)
       if (result.status === 'partial') {
+        setProfileData({ ...profileData, email: result.email })
         setStep('PROFILE')
       }
     } catch (err) {
@@ -85,7 +109,8 @@ export default function Auth() {
     setLoading(true)
     try {
       await signup({
-        phone,
+        email: profileData.email,
+        phone: profileData.phone,
         username: profileData.username,
         user_type: profileData.user_type
       })
@@ -113,9 +138,9 @@ export default function Auth() {
 
         <div className="bg-slate-900/50 backdrop-blur-2xl border border-white/5 rounded-[2.5rem] p-8 shadow-2xl overflow-hidden min-h-[440px] flex flex-col">
           <AnimatePresence mode="wait">
-            {step === 'PHONE' && (
+            {step === 'EMAIL' && (
               <motion.div
-                key="phone"
+                key="email"
                 initial={{ x: 20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: -20, opacity: 0 }}
@@ -123,18 +148,17 @@ export default function Auth() {
               >
                 <div className="mb-8">
                   <h2 className="text-2xl font-bold text-white mb-2 leading-tight">Welcome to <br/>De Boye's</h2>
-                  <p className="text-slate-400 text-sm">Enter your phone number to start.</p>
+                  <p className="text-slate-400 text-sm">Enter your email to start.</p>
                 </div>
 
-                <form onSubmit={handlePhoneSubmit} className="space-y-6">
+                <form onSubmit={handleEmailSubmit} className="space-y-6">
                   <div className="relative group">
-                    <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 font-bold border-r border-slate-800 pr-4">🇬🇭 +233</span>
                     <input
-                      type="tel"
-                      placeholder="Phone Number"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="w-full pl-24 pr-5 py-4 bg-slate-800/30 border border-slate-800 rounded-2xl focus:border-emerald-500 transition-all text-white placeholder-slate-600 font-medium"
+                      type="email"
+                      placeholder="Email Address"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full px-5 py-4 bg-slate-800/30 border border-slate-800 rounded-2xl focus:border-emerald-500 transition-all text-white placeholder-slate-600 font-medium"
                       required
                       autoFocus
                     />
@@ -155,13 +179,29 @@ export default function Auth() {
                   </button>
                 </form>
 
-                <div className="mt-8 flex flex-col items-center gap-4">
+                <div className="mt-6 flex flex-col items-center gap-4">
+                  <div className="w-full flex items-center gap-4">
+                    <div className="h-[1px] flex-1 bg-slate-800"></div>
+                    <span className="text-xs text-slate-500 uppercase font-bold">Or</span>
+                    <div className="h-[1px] flex-1 bg-slate-800"></div>
+                  </div>
+
+                  <div className="w-full flex justify-center">
+                    <GoogleLogin
+                      onSuccess={handleGoogleSuccess}
+                      onError={() => toast.error('Google Sign In failed')}
+                      theme="filled_black"
+                      shape="pill"
+                      width="100%"
+                    />
+                  </div>
+
                   <button 
                     onClick={() => setStep('PASSWORD')}
                     className="text-white font-bold text-sm hover:text-emerald-500 transition-colors flex items-center gap-2"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                    Continue with password
+                    Sign in with password
                   </button>
                   <p className="text-[11px] text-slate-500 text-center leading-relaxed max-w-[280px]">
                     By continuing you agree to De Boye's <span className="text-emerald-500 font-semibold underline underline-offset-4">Terms of Service</span> and <span className="text-emerald-500 font-semibold underline underline-offset-4">Privacy Policy</span>.
@@ -180,15 +220,15 @@ export default function Auth() {
               >
                 <div className="mb-10">
                   <button 
-                    onClick={() => setStep('PHONE')}
+                    onClick={() => setStep('EMAIL')}
                     className="mb-6 p-2 rounded-full bg-white/5 text-white hover:bg-white/10 transition-colors"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                   </button>
-                  <h2 className="text-2xl font-bold text-white mb-2">Verify Phone</h2>
+                  <h2 className="text-2xl font-bold text-white mb-2">Verify Email</h2>
                   <p className="text-slate-400 text-sm leading-relaxed">
                     We've sent a 4-digit code to <br/>
-                    <span className="text-white font-semibold">+233 {phone}</span>
+                    <span className="text-white font-semibold">{email}</span>
                   </p>
                 </div>
 
@@ -219,10 +259,10 @@ export default function Auth() {
                     <p className="text-xs text-slate-500 mb-2">Didn't receive code?</p>
                     <button 
                       type="button"
-                      onClick={() => sendCode(phone)}
+                      onClick={() => sendCode({ email })}
                       className="text-white font-bold text-sm hover:text-emerald-500 transition-colors"
                     >
-                      Resend in 30s
+                      Resend code
                     </button>
                   </div>
                 </form>
@@ -239,7 +279,7 @@ export default function Auth() {
               >
                 <div className="mb-10">
                   <button 
-                    onClick={() => setStep('PHONE')}
+                    onClick={() => setStep('EMAIL')}
                     className="mb-6 p-2 rounded-full bg-white/5 text-white hover:bg-white/10 transition-colors"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
@@ -307,6 +347,17 @@ export default function Auth() {
                       onChange={(e) => setProfileData({...profileData, username: e.target.value})}
                       className="w-full px-5 py-4 bg-slate-800/30 border border-slate-800 rounded-2xl focus:border-emerald-500 transition-all text-white"
                       required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase tracking-widest font-black text-slate-500 ml-1">Phone (Optional)</label>
+                    <input
+                      type="tel"
+                      placeholder="e.g. 0244123456"
+                      value={profileData.phone}
+                      onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                      className="w-full px-5 py-4 bg-slate-800/30 border border-slate-800 rounded-2xl focus:border-emerald-500 transition-all text-white"
                     />
                   </div>
 

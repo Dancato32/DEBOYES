@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { requestOTP, verifyOTP, completeProfile, authPasswordLogin, authLogout, getCurrentUser } from '../services/api'
+import { requestOTP, verifyOTP, googleLogin, completeProfile, authPasswordLogin, authLogout, getCurrentUser } from '../services/api'
 import { toast } from 'react-toastify'
 
 const AuthContext = createContext(null)
@@ -32,13 +32,14 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false))
   }, [])
 
-  const login = async (phone, code) => {
+  const login = async (identifier, code) => {
+    // identifier can be { phone } or { email }
     try {
-      const response = await verifyOTP(phone, code)
-      const { status, token, user: userData } = response.data
+      const response = await verifyOTP({ ...identifier, code })
+      const { status, token, user: userData, email, phone } = response.data
 
       if (status === 'partial') {
-        return { status: 'partial', phone }
+        return { status: 'partial', phone, email }
       }
 
       localStorage.setItem('authToken', token)
@@ -50,6 +51,28 @@ export function AuthProvider({ children }) {
       return { status: 'success' }
     } catch (error) {
       toast.error(error.response?.data?.error || 'Verification failed')
+      throw error
+    }
+  }
+
+  const loginWithGoogle = async (idToken) => {
+    try {
+      const response = await googleLogin(idToken)
+      const { status, token, user: userData, email, suggested_username } = response.data
+
+      if (status === 'partial') {
+        return { status: 'partial', email, suggested_username }
+      }
+
+      localStorage.setItem('authToken', token)
+      setUser(userData)
+      setIsAuthenticated(true)
+      toast.success(`Welcome, ${userData.username}!`)
+      
+      handleRedirect(userData)
+      return { status: 'success' }
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Google login failed')
       throw error
     }
   }
@@ -98,9 +121,10 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const sendCode = async (phone) => {
+  const sendCode = async (identifier) => {
+    // identifier can be { phone } or { email }
     try {
-      await requestOTP(phone)
+      await requestOTP(identifier)
       toast.info('Verification code sent!')
     } catch (error) {
       toast.error(error.response?.data?.error || 'Failed to send code')
@@ -120,7 +144,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, loading, login, loginWithPassword, signup, logout, sendCode }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, loading, login, loginWithGoogle, loginWithPassword, signup, logout, sendCode }}>
       {children}
     </AuthContext.Provider>
   )
