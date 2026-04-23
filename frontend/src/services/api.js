@@ -1,10 +1,9 @@
 import axios from 'axios'
 
 const productionURL = 'https://deboyes-89k1.onrender.com'
-const localURL = 'http://localhost:8000'
 
 const api = axios.create({
-  baseURL: `${import.meta.env.VITE_API_URL || (import.meta.env.PROD ? productionURL : localURL)}/api/`,
+  baseURL: `${import.meta.env.VITE_API_URL || productionURL}/api/`,
   headers: {
     'Content-Type': 'application/json'
   }
@@ -23,6 +22,8 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Add debug alert for mobile APK troubleshooting
+    alert(`API Error!\nURL: ${error.config?.baseURL}${error.config?.url}\nError: ${error.message}\nData: ${JSON.stringify(error.response?.data || 'No Data')}`)
     const message = error.response?.data?.error || error.response?.data?.detail || 'An unexpected error occurred'
     console.error('API Error:', message)
     return Promise.reject(error)

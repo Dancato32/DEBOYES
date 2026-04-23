@@ -6,16 +6,21 @@ import { toast } from 'react-toastify'
 
 export default function Auth() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { user, isAuthenticated, login, signup, loading: authLoading } = useAuth()
 
-  const [mode, setMode] = useState('LOGIN') // 'LOGIN' or 'SIGNUP'
+  const defaultMode = location.state?.mode || 'LOGIN'
+  const defaultRole = location.state?.role || 'customer'
+  const hideRoleSelection = !!location.state?.role
+
+  const [mode, setMode] = useState(defaultMode) // 'LOGIN' or 'SIGNUP'
   const [loading, setLoading] = useState(false)
   
   // Form states
   const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [userType, setUserType] = useState('customer')
+  const [userType, setUserType] = useState(defaultRole)
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -121,7 +126,7 @@ export default function Auth() {
                   />
                 </div>
 
-                {mode === 'SIGNUP' && (
+                {mode === 'SIGNUP' && !hideRoleSelection && (
                   <div className="space-y-2">
                     <label className="text-[10px] uppercase tracking-widest font-black text-slate-500 ml-1">I am a</label>
                     <div className="grid grid-cols-2 gap-4">

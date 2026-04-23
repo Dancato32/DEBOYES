@@ -44,7 +44,7 @@ export default function App() {
   const { user, loading } = useAuth()
   
   const isAdminPath = location.pathname.startsWith('/admin')
-  const isMobileLayoutPath = location.pathname === '/' || location.pathname === '/customer' || location.pathname === '/checkout' || location.pathname === '/history' || location.pathname === '/profile' || location.pathname.startsWith('/rider') || location.pathname.startsWith('/track') || location.pathname.startsWith('/payment')
+  const isMobileLayoutPath = location.pathname === '/' || location.pathname === '/auth' || location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/onboarding' || location.pathname === '/customer' || location.pathname === '/checkout' || location.pathname === '/history' || location.pathname === '/profile' || location.pathname.startsWith('/rider') || location.pathname.startsWith('/track') || location.pathname.startsWith('/payment')
   const hideNavbar = isMobileLayoutPath
 
   // Block rendering until the session check resolves — prevents
@@ -78,8 +78,11 @@ export default function App() {
         {!hideNavbar && <Navbar />}
         <main className={`flex-1 overflow-y-auto ${isAdminPath ? 'no-scrollbar p-10' : (!isMobileLayoutPath ? 'px-4 py-6 sm:px-6 lg:px-8' : '')}`}>
           <Routes>
-            <Route path="/" element={<Auth />} />
-            <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/" element={<Onboarding />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/login" element={<Navigate to="/auth" replace />} />
+            <Route path="/signup" element={<Navigate to="/auth" replace />} />
+            <Route path="/onboarding" element={<Navigate to="/" replace />} />
             <Route
               path="/customer"
               element={
