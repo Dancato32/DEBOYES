@@ -196,12 +196,8 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # CORS Settings — cross-domain (Railway frontend <-> Render backend)
-env_origins = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',')
-default_origins = ['http://localhost', 'capacitor://localhost', 'http://localhost:5173', 'http://127.0.0.1:5173', 'https://frontend-production-b947.up.railway.app']
-CORS_ALLOWED_ORIGINS = list(set([o.strip().strip('/') for o in env_origins + default_origins if o.strip()]))
-
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = False
 
 # CSRF Settings
 env_csrf = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
