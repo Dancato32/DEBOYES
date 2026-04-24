@@ -35,8 +35,8 @@ export default function useGlobalNotifications() {
               position: 'top-center'
             })
 
-            // 2. Browser Notification (if permission granted)
-            if (Notification.permission === 'granted') {
+            // 2. Browser Notification (if supported and permission granted)
+            if ('Notification' in window && Notification.permission === 'granted') {
               new Notification("De Boye's Order Update", {
                 body: message,
                 icon: '/logo.png'
@@ -57,8 +57,8 @@ export default function useGlobalNotifications() {
 
     connect()
 
-    // Request Notification permission
-    if (Notification.permission === 'default') {
+    // Request Notification permission (if supported)
+    if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission()
     }
 
