@@ -12,7 +12,7 @@ export default function Checkout() {
   const [address, setAddress] = useState('')
   const [area, setArea] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState('cash') // 'card', 'mobile', 'cash'
+  const [paymentMethod, setPaymentMethod] = useState('pay_in_person') // 'pay_on_app', 'pay_in_person'
   const [locating, setLocating] = useState(false)
   const [coords, setCoords] = useState(null)
   const [showMap, setShowMap] = useState(false)
@@ -106,7 +106,7 @@ export default function Checkout() {
         total_price: grandTotal.toFixed(2),
         lat: coords?.lat,
         lng: coords?.lng,
-        payment_method: paymentMethod === 'card' ? 'pay_on_app' : 'pay_in_person',
+        payment_method: paymentMethod,
         items: cartItems.map(i => ({ food_id: i.food_id, qty: i.qty }))
       })
       clearCart()
@@ -199,11 +199,10 @@ export default function Checkout() {
         {/* PAYMENT METHOD */}
         <section className="space-y-5">
            <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-red/60 px-1 font-outfit">Payment Method</h2>
-           <div className="grid grid-cols-3 gap-4">
+           <div className="grid grid-cols-2 gap-4">
               {[
-                { id: 'card', label: 'Card', icon: '💳' },
-                { id: 'mobile', label: 'Mobile', icon: '📱' },
-                { id: 'cash', label: 'Cash', icon: '💵' }
+                { id: 'pay_on_app', label: 'Pay on App', icon: '📱' },
+                { id: 'pay_in_person', label: 'Pay in Person', icon: '💵' }
               ].map(method => (
                 <button 
                   key={method.id}
