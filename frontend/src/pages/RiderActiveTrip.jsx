@@ -51,6 +51,10 @@ export default function RiderActiveTrip() {
   const [riderPos, setRiderPos] = useState(null)
   const [chatOrderId, setChatOrderId] = useState(null)
   const [unreadMessages, setUnreadMessages] = useState({}) // {orderId: count}
+  
+  const currentStop = activeBatch?.orders?.[0]
+  const isWaitingForPickup = currentStop?.status === 'assigned'
+  const destCoords = currentStop ? (currentStop.lat ? { lat: currentStop.lat, lng: currentStop.lng } : getAreaCoords(currentStop.area)) : null
 
   const loadData = async () => {
     try {
@@ -230,7 +234,7 @@ export default function RiderActiveTrip() {
     </div>
   )
 
-  if (!activeBatch) return (
+  if (!activeBatch || !currentStop) return (
     <div className="min-h-screen bg-brand-cream text-slate-800 flex flex-col items-center justify-center p-10 space-y-8 font-inter">
        <div className="text-7xl grayscale opacity-20">🛵</div>
        <div className="text-center space-y-2">
@@ -257,9 +261,7 @@ export default function RiderActiveTrip() {
     </div>
   )
 
-  const currentStop = activeBatch.orders[0]
-  const isWaitingForPickup = currentStop.status === 'assigned'
-  const destCoords = currentStop.lat ? { lat: currentStop.lat, lng: currentStop.lng } : getAreaCoords(currentStop.area)
+
 
   return (
     <div className="min-h-screen bg-brand-cream text-slate-800 pb-32 font-inter overflow-x-hidden">

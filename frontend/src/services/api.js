@@ -29,7 +29,7 @@ api.interceptors.response.use(
       console.warn('Network Error detected:', error.config?.url)
       // Avoid spamming toasts for silent background checks like auth/me
       if (!error.config?.url?.includes('auth/me')) {
-        toast.error('Network Error: Please check your internet connection.')
+        console.warn('Network Error: Connection failed')
       }
       return Promise.reject(error)
     }
