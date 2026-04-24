@@ -23,6 +23,7 @@ export default function Checkout() {
 
   const [deliveryFee, setDeliveryFee] = useState(0)
   const [feeZone, setFeeZone] = useState('')
+  const [deliveryMeta, setDeliveryMeta] = useState(null)
   const [calculatingFee, setCalculatingFee] = useState(false)
 
   const grandTotal = total > 0 ? total + (deliveryFee || 0) : 0
@@ -66,8 +67,10 @@ export default function Checkout() {
         const res = await estimateFee({ lat: coords?.lat, lng: coords?.lng, area })
         setDeliveryFee(res.data.fee)
         setFeeZone(res.data.zone)
+        setDeliveryMeta(res.data)
       } catch (err) {
         setDeliveryFee(20.00)
+        setDeliveryMeta(null)
       } finally {
         setCalculatingFee(false)
       }
@@ -235,9 +238,17 @@ export default function Checkout() {
                     <span className="text-slate-900 font-inter">₵{total.toFixed(2)}</span>
                  </div>
                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
-                    <div className="flex items-center gap-2">
-                       <span>Delivery</span>
-                       {feeZone && <span className="bg-brand-red/5 text-brand-red px-2 py-0.5 rounded text-[8px] tracking-normal">{feeZone}</span>}
+                    <div className="flex flex-col gap-1">
+                       <div className="flex items-center gap-2">
+                          <span>Delivery</span>
+                          {feeZone && <span className="bg-brand-red/5 text-brand-red px-2 py-0.5 rounded text-[8px] tracking-normal">{feeZone}</span>}
+                       </div>
+                       {deliveryMeta && (
+                         <div className="flex items-center gap-2 text-[8px] opacity-60 normal-case tracking-normal">
+                            <span>📍 {deliveryMeta.distance_km} km</span>
+                            <span>⏱️ {deliveryMeta.eta_mins} mins</span>
+                         </div>
+                       )}
                     </div>
                     <span className={`${calculatingFee ? 'animate-pulse' : 'text-brand-red'} font-inter`}>
                       {deliveryFee === 0 && !calculatingFee ? 'FREE' : `₵${deliveryFee.toFixed(2)}`}
