@@ -1,14 +1,16 @@
 import math
 from .models import DeliveryZone
 
+# Restaurant Origin: Seth Nii Nartey Street, Accra
+RESTAURANT_LAT = 5.6014
+RESTAURANT_LNG = -0.1148
+
 def haversine(lat1, lon1, lat2, lon2):
     """
     Calculate the great circle distance between two points 
     on the earth (specified in decimal degrees)
     """
-    # radius of earth in kilometers
-    R = 6371.0
-
+    R = 6371.0 # Earth radius in km
     dlat = math.radians(lat2 - lat1)
     dlon = math.radians(lon2 - lon1)
     a = math.sin(dlat / 2)**2 + math.cos(math.radians(lat1)) * \
@@ -18,46 +20,53 @@ def haversine(lat1, lon1, lat2, lon2):
 
 def calculate_delivery_fee(lat, lng, area_name):
     """
-    Smart fee calculation:
-    1. Try exact name match from user's list.
-    2. Fallback to nearest neighbor coordinate estimation.
+    DeBoye's Kitchen Delivery Fee Calculator Logic:
+    1. PRIORITY: Known Zone Table (Name match)
+    2. FALLBACK: GPS Distance Formula from Restaurant
     """
     from django.core.cache import cache
     zones = cache.get('delivery_zones_list')
     if not zones:
         zones = list(DeliveryZone.objects.all())
-        cache.set('delivery_zones_list', zones, 3600) # Cache for 1 hour
+        cache.set('delivery_zones_list', zones, 3600)
 
-    if not zones:
-        # Emergency fallback if database is empty
-        return 20.0, "Default"
-
-    # Step 1: Direct Name Match
-    # We check if the area name provided by the customer contains or is contained in our zone list
     name_clean = str(area_name).lower().strip()
     
-    best_match = None
+    # 1. KNOWN ZONE TABLE (Direct Name Match)
     for z in zones:
         z_name = z.name.lower()
         if z_name in name_clean or name_clean in z_name:
-            # We prioritize direct name matches
             return float(z.price), z.name
 
-    # Step 2: Proximity Estimate using GPS
-    # If we couldn't match the name, we find the closest anchor point
+    # 2. GPS DISTANCE FORMULA (Haversine + Multiplier)
     if lat is not None and lng is not None:
         try:
-            # Sort by distance
-            zones_with_distance = [
-                (z, haversine(float(lat), float(lng), z.lat, z.lng)) 
-                for z in zones
-            ]
-            nearest_zone, dist = min(zones_with_distance, key=lambda x: x[1])
+            # Straight-line distance to restaurant
+            straight_dist = haversine(float(lat), float(lng), RESTAURANT_LAT, RESTAURANT_LNG)
             
-            # If the distance is reasonable (e.g. within same metro area), use neighbor price
-            return float(nearest_zone.price), f"Estimated (via {nearest_zone.name})"
-        except Exception as e:
-            print(f"Distance calculation error: {e}")
+            # Apply road multiplier
+            # Default 1.2x, but 1.3x for very far/indirect zones
+            multiplier = 1.2
+            if straight_dist > 25:
+                multiplier = 1.3
+            
+            adjusted_km = straight_dist * multiplier
+            
+            # Edge Case: Over 40km (Outside Zone)
+            if adjusted_km > 40:
+                return 0.0, "OUTSIDE_ZONE"
 
-    # Final Catch-all Fallback (e.g. if GPS is missing)
+            # DELIVERY FEE FORMULA:
+            # Fee = round(max(15, 8 + distance_km * 1.85) / 5) * 5
+            raw_fee = max(15, 8 + adjusted_km * 1.85)
+            final_fee = round(raw_fee / 5) * 5
+            
+            # Ensure minimum fee of 15
+            final_fee = max(15, final_fee)
+            
+            return float(final_fee), f"~{round(adjusted_km)}km from Kitchen"
+        except Exception as e:
+            print(f"Fee Calculation Error: {e}")
+
+    # FINAL FALLBACK (If no name match and no GPS)
     return 30.0, "General Accra"
