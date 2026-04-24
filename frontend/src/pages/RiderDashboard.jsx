@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { fetchRiderStats, toggleAvailability, fetchAvailableBatches } from '../services/api'
+import { fetchRiderStats, toggleAvailability, fetchAvailableBatches, fetchAssignedOrders } from '../services/api'
+import api from '../services/api'
 import { toast } from '../utils/soundToast'
 import { Link } from 'react-router-dom'
 import BottomNav from '../components/BottomNav'
@@ -16,6 +17,7 @@ export default function RiderDashboard() {
     is_available: false
   })
   const [batches, setBatches] = useState([])
+  const [activeOrders, setActiveOrders] = useState([])
   const [loading, setLoading] = useState(true)
 
   const { location, area, error: lError } = useRiderLocation(stats.is_available)
@@ -25,12 +27,14 @@ export default function RiderDashboard() {
 
   const loadData = async () => {
     try {
-      const [statsRes, batchesRes] = await Promise.all([
+      const [statsRes, batchesRes, assignedRes] = await Promise.all([
         fetchRiderStats(),
-        fetchAvailableBatches()
+        fetchAvailableBatches(),
+        fetchAssignedOrders()
       ])
       setStats(statsRes.data)
       setBatches(batchesRes.data.batches || [])
+      setActiveOrders(assignedRes.data.orders || [])
     } catch (err) {
       toast.error('Failed to sync dashboard')
     } finally {
@@ -154,6 +158,31 @@ export default function RiderDashboard() {
             <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mt-1">Status</p>
           </div>
         </div>
+
+        {/* ─── ACTIVE ORDERS BANNER ────────────────────────────── */}
+        {activeOrders.length > 0 && (
+          <Link 
+            to="/rider/active"
+            className="mb-10 block bg-brand-red p-6 rounded-[2rem] shadow-xl shadow-brand-red/20 text-white relative overflow-hidden group"
+          >
+            <div className="absolute right-0 bottom-0 opacity-10">
+              <svg className="w-32 h-32" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z" />
+              </svg>
+            </div>
+            <div className="relative z-10 flex items-center justify-between">
+               <div className="space-y-1">
+                 <p className="text-[10px] font-black uppercase tracking-widest text-white/60">Current Active Mission</p>
+                 <h4 className="text-xl font-black italic uppercase tracking-tight">{activeOrders.length} Order{activeOrders.length !== 1 ? 's' : ''} in Progress</h4>
+               </div>
+               <div className="h-10 w-10 rounded-full bg-brand-yellow flex items-center justify-center text-brand-red shadow-lg group-hover:scale-110 transition-transform">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+               </div>
+            </div>
+          </Link>
+        )}
 
         {/* Section heading */}
         <div className="flex items-center justify-between mb-8 px-1">
