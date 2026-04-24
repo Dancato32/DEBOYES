@@ -5,6 +5,7 @@ import Onboarding from './pages/Onboarding'
 import CustomerDashboard from './pages/CustomerDashboard'
 import RiderDashboard from './pages/RiderDashboard'
 import TrackOrder from './pages/TrackOrder'
+import MapTrack from './pages/MapTrack'
 import Checkout from './pages/Checkout'
 import Navbar from './components/Navbar'
 import { useAuth } from './context/AuthContext'
@@ -48,7 +49,7 @@ export default function App() {
   useGlobalNotifications()
   
   const isAdminPath = location.pathname.startsWith('/admin')
-  const isMobileLayoutPath = location.pathname === '/' || location.pathname === '/auth' || location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/onboarding' || location.pathname === '/customer' || location.pathname === '/checkout' || location.pathname === '/history' || location.pathname === '/profile' || location.pathname.startsWith('/rider') || location.pathname.startsWith('/track') || location.pathname.startsWith('/payment')
+  const isMobileLayoutPath = location.pathname === '/' || location.pathname === '/auth' || location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/onboarding' || location.pathname === '/customer' || location.pathname === '/checkout' || location.pathname === '/history' || location.pathname === '/profile' || location.pathname.startsWith('/rider') || location.pathname.startsWith('/track') || location.pathname.startsWith('/map-track') || location.pathname.startsWith('/payment')
   const hideNavbar = isMobileLayoutPath
 
   // Block rendering until the session check resolves — prevents
@@ -189,6 +190,14 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <TrackOrder />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/map-track/:orderId"
+              element={
+                <ProtectedRoute>
+                  <MapTrack />
                 </ProtectedRoute>
               }
             />
