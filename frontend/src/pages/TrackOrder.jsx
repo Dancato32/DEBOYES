@@ -8,8 +8,6 @@ import ChatDialog from '../components/ChatDialog'
 import { toast } from 'react-toastify'
 import { AnimatePresence } from 'framer-motion'
 
-// Simulated destination — in production you'd geocode the actual delivery address
-const DESTINATION = { lat: 5.5580, lng: -0.1920 }
 
 export default function TrackOrder() {
   const { orderId } = useParams()
@@ -87,7 +85,7 @@ export default function TrackOrder() {
       <div className="absolute inset-0 z-0">
         <MapTracker
           position={position}
-          destination={DESTINATION}
+          destination={{ lat: order?.lat, lng: order?.lng }}
           restaurant={{ lat: order?.restaurant_lat, lng: order?.restaurant_lng }}
           darkMode={false}
         />

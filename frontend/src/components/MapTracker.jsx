@@ -18,8 +18,9 @@ const createCustomIcon = (iconName, bgColor = '#526DFF') => L.divIcon({
     border: 3px solid white;
     border-radius: 50%;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    transition: all 1s linear;
     display: flex;
-    items-center;
+    align-items: center;
     justify-content: center;
     font-size: 18px;
     color: white;

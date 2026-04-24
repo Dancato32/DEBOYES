@@ -7,10 +7,10 @@ export default function CategoryChips({ active, onChange, categories = [] }) {
         <button
           key={catName}
           onClick={() => onChange(catName)}
-          className={`flex items-center justify-center rounded-full px-5 py-2 text-xs font-semibold font-inter uppercase tracking-widest transition-all min-w-max border ${
+          className={`flex items-center justify-center rounded-lg px-6 py-2.5 text-[10px] font-black font-inter uppercase tracking-[0.15em] transition-all min-w-max border ${
             active === catName
-              ? 'bg-brand-red text-white border-brand-red shadow-lg shadow-brand-red/20'
-              : 'bg-white text-slate-500 border-[#F0E8D8] hover:bg-[#F0E8D8] hover:text-slate-800'
+              ? 'bg-slate-900 text-white border-slate-900 shadow-sm ring-2 ring-brand-yellow ring-offset-1'
+              : 'bg-white text-slate-500 border-slate-200 hover:border-slate-400 hover:text-slate-800'
           }`}
         >
           {catName}

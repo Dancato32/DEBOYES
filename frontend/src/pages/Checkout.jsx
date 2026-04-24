@@ -265,211 +265,207 @@ export default function Checkout() {
 
       <div className="max-w-7xl mx-auto pt-8 px-6">
         <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-8 items-start">
-          
-          {/* LEFT COLUMN: Delivery Details */}
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200 space-y-6">
-              {/* Integrated Header removed for cleaner look */}
-
-              {/* USE MY LOCATION BUTTON */}
-              {/* Simplified Location Button */}
-              <div className="flex justify-between items-center bg-slate-50 p-4 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors group cursor-pointer" onClick={handleUseLocation}>
-                <div className="flex items-center gap-4">
-                  <div className={`h-10 w-10 flex items-center justify-center rounded-lg bg-brand-red text-white transition-transform group-hover:scale-105 ${locating ? 'animate-spin' : ''}`}>
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                       <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-slate-900 font-inter">{locating ? 'Detecting...' : 'Locate Me'}</p>
-                    <p className="text-[10px] text-slate-500 font-inter uppercase tracking-widest">{locating ? 'GPS Active' : 'Auto-detect Address'}</p>
-                  </div>
-                </div>
-                <button className="text-brand-red font-bold text-xs uppercase tracking-widest bg-white px-3 py-1.5 rounded border border-slate-200">Detect</button>
-              </div>
-
-              {/* Mini map preview */}
-              {showMap && coords && (
-                <div className="rounded-lg overflow-hidden border border-slate-200 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500" style={{ height: '240px' }}>
-                  <div ref={mapRef} className="h-full w-full" />
-                </div>
-              )}
-
-              {/* Detected location badge */}
-              {coords && address && (
-                <div className="flex items-start gap-4 p-4 rounded-lg bg-emerald-50 border border-emerald-100 animate-in zoom-in-95 duration-300">
-                  <div className="h-8 w-8 rounded-full bg-emerald-500 flex items-center justify-center text-white text-base shrink-0 shadow-sm">✓</div>
-                  <div>
-                    <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest font-inter">Auto-detected Address</p>
-                    <p className="text-sm text-emerald-900 mt-1 font-semibold leading-snug font-inter">{address}</p>
-                    {area && <p className="text-xs text-emerald-600 mt-1.5 font-bold uppercase tracking-widest font-inter flex items-center gap-1.5">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
-                      Zone: {area}
-                    </p>}
-                  </div>
-                </div>
-              )}
-
-              <div className="h-2"></div>
-
-              <div className="space-y-4">
-                <div>
-                  <input 
-                    id="address"
-                    type="text" 
-                    value={address}
-                    onChange={e => setAddress(e.target.value)}
-                    placeholder="Full Address / Landmark" 
-                    className="w-full bg-white border border-slate-200 rounded-lg px-4 py-3 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-brand-red outline-none font-inter transition-all shadow-sm"
-                  />
-                </div>
-                <div>
-                  <input 
-                    id="area"
-                    type="text" 
-                    value={area}
-                    onChange={e => setArea(e.target.value)}
-                    placeholder="Neighborhood / Area" 
-                    className="w-full bg-white border border-slate-200 rounded-lg px-4 py-3 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-brand-red outline-none font-inter transition-all shadow-sm"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* RIGHT COLUMN: Order Review */}
-          <div className="space-y-6 lg:sticky lg:top-24">
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200 space-y-6">
-              <div className="flex items-center justify-between mb-2">
-                 <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500 font-inter">Order Summary</h2>
-                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{cartItems.length} Items</span>
-              </div>
-              
-              <div className="divide-y divide-slate-100">
-                {cartItems.map(item => (
-                  <div key={item.food_id} className="py-4 flex items-center justify-between group">
-                    <div className="flex items-center gap-4">
-                       <div className="h-12 w-12 flex items-center justify-center rounded-lg bg-slate-50 text-xl overflow-hidden shrink-0 border border-slate-200 shadow-sm">
-                         {item.image ? (
-                           <img src={`${import.meta.env.VITE_API_URL || ''}${item.image}`} alt={item.name} className="h-full w-full object-cover" />
-                         ) : (
-                           '🍲'
-                         )}
-                       </div>
-                       <div>
-                         <p className="font-bold text-sm text-slate-900 leading-tight font-inter">{item.name}</p>
-                         <p className="text-xs font-bold text-brand-red mt-1 font-inter uppercase tracking-widest">₵{item.price}</p>
-                       </div>
+            <section>
+              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 font-inter mb-4 px-1">Delivery Destination</h2>
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200 space-y-6">
+                {/* USE MY LOCATION BUTTON - Sharper */}
+                <div className="flex justify-between items-center bg-slate-50 p-5 rounded-lg border border-slate-100 hover:border-brand-red/30 transition-all group cursor-pointer" onClick={handleUseLocation}>
+                  <div className="flex items-center gap-4">
+                    <div className={`h-11 w-11 flex items-center justify-center rounded-lg bg-brand-red text-white transition-all group-hover:shadow-lg group-hover:shadow-brand-red/20 ${locating ? 'animate-spin' : ''}`}>
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                         <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z" />
+                      </svg>
                     </div>
-
-                    <div className="flex flex-col items-end gap-2">
-                      <div className="flex items-center gap-3 bg-slate-50 rounded-lg px-2 py-1 border border-slate-200">
+                    <div>
+                      <p className="text-sm font-black text-slate-900 font-inter">{locating ? 'Detecting...' : 'Live GPS Detection'}</p>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">{locating ? 'Fetching Coords' : 'Precision Location'}</p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-brand-red bg-white border border-slate-200 px-4 py-2 rounded-md group-hover:border-brand-red/50 transition-colors">Detect</span>
+                </div>
+ 
+                {/* Mini map preview */}
+                {showMap && coords && (
+                  <div className="rounded-lg overflow-hidden border border-slate-200 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500" style={{ height: '240px' }}>
+                    <div ref={mapRef} className="h-full w-full" />
+                  </div>
+                )}
+ 
+                {/* Detected location badge */}
+                {coords && address && (
+                  <div className="flex items-start gap-4 p-5 rounded-lg bg-emerald-50 border border-emerald-100 animate-in zoom-in-95 duration-300">
+                    <div className="h-8 w-8 rounded-full bg-emerald-500 flex items-center justify-center text-white text-base shrink-0 shadow-sm">✓</div>
+                    <div>
+                      <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest font-inter">Verified Address</p>
+                      <p className="text-sm text-emerald-900 mt-1 font-bold leading-relaxed font-inter">{address}</p>
+                      {area && <p className="text-[9px] text-emerald-600 mt-2 font-black uppercase tracking-widest font-inter flex items-center gap-1.5 bg-emerald-100/50 w-fit px-2 py-0.5 rounded">
+                        Zone: {area}
+                      </p>}
+                    </div>
+                  </div>
+                )}
+ 
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5 block px-1">Street Address</label>
+                    <input 
+                      id="address"
+                      type="text" 
+                      value={address}
+                      onChange={e => setAddress(e.target.value)}
+                      placeholder="e.g. 12th Floor, Trade Tower" 
+                      className="w-full bg-white border border-slate-200 rounded-lg px-4 py-3.5 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-brand-red/10 focus:border-brand-red/40 outline-none font-inter transition-all shadow-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5 block px-1">Neighborhood</label>
+                    <input 
+                      id="area"
+                      type="text" 
+                      value={area}
+                      onChange={e => setArea(e.target.value)}
+                      placeholder="e.g. East Legon" 
+                      className="w-full bg-white border border-slate-200 rounded-lg px-4 py-3.5 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-brand-red/10 focus:border-brand-red/40 outline-none font-inter transition-all shadow-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+ 
+          {/* RIGHT COLUMN: Order Review */}
+          <div className="space-y-8 lg:sticky lg:top-24">
+            <section>
+              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 font-inter mb-4 px-1">Summary</h2>
+              <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200 space-y-6">
+                <div className="divide-y divide-slate-100">
+                  {cartItems.map(item => (
+                    <div key={item.food_id} className="py-4 flex items-center justify-between group first:pt-0">
+                      <div className="flex items-center gap-4">
+                         <div className="h-14 w-14 flex items-center justify-center rounded-lg bg-slate-50 text-xl overflow-hidden shrink-0 border border-slate-100">
+                           {item.image ? (
+                             <img src={`${import.meta.env.VITE_API_URL || ''}${item.image}`} alt={item.name} className="h-full w-full object-cover" />
+                           ) : (
+                             '🍲'
+                           )}
+                         </div>
+                         <div>
+                           <p className="font-bold text-sm text-slate-900 leading-tight font-inter">{item.name}</p>
+                           <p className="text-[10px] font-black text-slate-400 mt-1 font-inter uppercase tracking-widest">₵{item.price} × {item.qty}</p>
+                         </div>
+                      </div>
+ 
+                      <div className="flex items-center gap-3 bg-slate-50 rounded-lg px-1.5 py-1 border border-slate-100">
                         <button 
                           onClick={() => updateQty(item.food_id, item.qty - 1)}
-                          className="h-6 w-6 flex items-center justify-center rounded bg-white text-slate-600 shadow-sm active:scale-75 transition-transform border border-slate-200"
+                          className="h-7 w-7 flex items-center justify-center rounded-md bg-white text-slate-600 shadow-sm active:scale-75 transition-transform border border-slate-200 text-sm font-bold"
                         >
                           -
                         </button>
-                        <span className="font-bold text-sm font-inter w-4 text-center">{item.qty}</span>
+                        <span className="font-black text-xs font-inter w-5 text-center">{item.qty}</span>
                         <button 
                           onClick={() => updateQty(item.food_id, item.qty + 1)}
-                          className="h-6 w-6 flex items-center justify-center rounded bg-brand-red text-white shadow-sm active:scale-75 transition-transform"
+                          className="h-7 w-7 flex items-center justify-center rounded-md bg-brand-red text-white shadow-sm active:scale-75 transition-transform text-sm font-bold"
                         >
                           +
                         </button>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Invoice Table */}
-              <div className="pt-4 space-y-3">
-                 <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-widest font-inter">
-                   <span>Subtotal</span>
-                   <span className="text-slate-800">₵{total.toFixed(2)}</span>
-                 </div>
-                 <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-widest font-inter">
-                    <div className="flex items-center gap-2">
-                      <span>Delivery</span>
-                      {feeZone && (
-                        <span className="bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded text-[8px] font-bold border border-slate-200">
-                          {feeZone}
-                        </span>
-                      )}
-                    </div>
-                    <span className={`${calculatingFee ? 'animate-pulse opacity-40' : 'text-emerald-600'} font-bold`}>
-                      ₵{deliveryFee.toFixed(2)}
-                    </span>
-                  </div>
-                 <div className="border-t border-slate-100 pt-4 flex items-center justify-between">
-                   <span className="text-sm font-bold text-slate-900 font-inter uppercase">Grand Total</span>
-                   <span className="text-2xl font-bold font-inter text-brand-red tracking-tight">₵{grandTotal.toFixed(2)}</span>
-                 </div>
-               {/* Payment Method Selector */}
-              <div className="space-y-3">
-                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 font-inter">Payment Method</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {/* Pay on App */}
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('pay_on_app')}
-                    className={`relative p-3 rounded-lg border transition-all duration-200 text-left ${
-                      paymentMethod === 'pay_on_app'
-                        ? 'border-brand-red bg-red-50'
-                        : 'border-slate-200 bg-white hover:border-brand-red/30'
-                    }`}
-                  >
-                    {paymentMethod === 'pay_on_app' && (
-                      <div className="absolute top-2 right-2 h-4 w-4 rounded-full bg-brand-red flex items-center justify-center">
-                        <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                      </div>
-                    )}
-                    <span className="text-xl block mb-1">📱</span>
-                    <p className="text-xs font-bold text-slate-900 font-inter leading-tight">Pay on App</p>
-                    <p className="text-[9px] text-slate-500 font-medium font-inter mt-1">MoMo • Card</p>
-                  </button>
+                  ))}
+                </div>
  
-                  {/* Pay in Person */}
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMethod('pay_in_person')}
-                    className={`relative p-3 rounded-lg border transition-all duration-200 text-left ${
-                      paymentMethod === 'pay_in_person'
-                        ? 'border-brand-red bg-red-50'
-                        : 'border-slate-200 bg-white hover:border-brand-red/30'
-                    }`}
-                  >
-                    {paymentMethod === 'pay_in_person' && (
-                      <div className="absolute top-2 right-2 h-4 w-4 rounded-full bg-brand-red flex items-center justify-center">
-                        <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                {/* Invoice Table */}
+                <div className="pt-4 space-y-4 border-t border-slate-100">
+                   <div className="flex items-center justify-between text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] font-inter">
+                     <span>Subtotal</span>
+                     <span className="text-slate-900">₵{total.toFixed(2)}</span>
+                   </div>
+                   <div className="flex items-center justify-between text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] font-inter">
+                      <div className="flex items-center gap-2">
+                        <span>Delivery</span>
+                        {feeZone && (
+                          <span className="bg-slate-100 text-slate-500 px-2 py-0.5 rounded text-[8px] font-black border border-slate-200">
+                            {feeZone}
+                          </span>
+                        )}
                       </div>
-                    )}
-                    <span className="text-xl block mb-1">💵</span>
-                    <p className="text-xs font-bold text-slate-900 font-inter leading-tight">Pay in Person</p>
-                    <p className="text-[9px] text-slate-500 font-medium font-inter mt-1">Cash on Delivery</p>
-                  </button>
+                      <span className={`${calculatingFee ? 'animate-pulse opacity-40' : 'text-emerald-600'} font-black`}>
+                        ₵{deliveryFee.toFixed(2)}
+                      </span>
+                    </div>
+                   <div className="pt-4 flex items-center justify-between">
+                     <span className="text-xs font-black text-slate-900 font-inter uppercase tracking-widest">Total</span>
+                     <span className="text-3xl font-black font-inter text-brand-red tracking-tighter italic">₵{grandTotal.toFixed(2)}</span>
+                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-
-              <button 
-                onClick={handlePlaceOrder}
-                disabled={isSubmitting}
-                className={`w-full h-14 flex items-center justify-center rounded-lg text-white shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 ${
-                  paymentMethod === 'pay_on_app' 
-                    ? 'bg-emerald-600 hover:bg-emerald-700' 
-                    : 'bg-brand-red hover:bg-brand-dark-red'
-                }`}
-              >
-                <div className="flex flex-col items-center">
-                  <span className="font-bold text-sm font-inter uppercase tracking-widest">
-                    {isSubmitting ? 'Processing...' : paymentMethod === 'pay_on_app' ? 'Pay Now' : 'Place Order'}
+ 
+                {/* Payment Method Selector */}
+                <div className="space-y-4 pt-4 border-t border-slate-100">
+                  <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 font-inter">Payment Method</h3>
+                  <div className="grid grid-cols-1 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('pay_on_app')}
+                      className={`relative flex items-center justify-between p-4 rounded-lg border transition-all duration-200 ${
+                        paymentMethod === 'pay_on_app'
+                          ? 'border-brand-red bg-brand-red/5 ring-1 ring-brand-red'
+                          : 'border-slate-200 bg-white hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <span className="text-xl">📱</span>
+                        <div>
+                          <p className="text-xs font-black text-slate-900 font-inter uppercase tracking-widest">Pay in App</p>
+                          <p className="text-[9px] text-slate-500 font-bold font-inter mt-0.5 uppercase tracking-widest">Mobile Money • Bank Cards</p>
+                        </div>
+                      </div>
+                      <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                        paymentMethod === 'pay_on_app' ? 'border-brand-red bg-brand-red' : 'border-slate-200'
+                      }`}>
+                        {paymentMethod === 'pay_on_app' && <div className="h-2 w-2 bg-white rounded-full" />}
+                      </div>
+                    </button>
+   
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('pay_in_person')}
+                      className={`relative flex items-center justify-between p-4 rounded-lg border transition-all duration-200 ${
+                        paymentMethod === 'pay_in_person'
+                          ? 'border-brand-red bg-brand-red/5 ring-1 ring-brand-red'
+                          : 'border-slate-200 bg-white hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <span className="text-xl">💵</span>
+                        <div>
+                          <p className="text-xs font-black text-slate-900 font-inter uppercase tracking-widest">Pay in Person</p>
+                          <p className="text-[9px] text-slate-500 font-bold font-inter mt-0.5 uppercase tracking-widest">Cash on Delivery</p>
+                        </div>
+                      </div>
+                      <div className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                        paymentMethod === 'pay_in_person' ? 'border-brand-red bg-brand-red' : 'border-slate-200'
+                      }`}>
+                        {paymentMethod === 'pay_in_person' && <div className="h-2 w-2 bg-white rounded-full" />}
+                      </div>
+                    </button>
+                  </div>
+                </div>
+ 
+                <button 
+                  onClick={handlePlaceOrder}
+                  disabled={isSubmitting}
+                  className={`w-full h-16 flex items-center justify-center rounded-lg shadow-xl transition-all active:scale-[0.98] disabled:opacity-50 mt-4 ${
+                    paymentMethod === 'pay_on_app' 
+                      ? 'bg-slate-900 hover:bg-black text-white' 
+                      : 'bg-brand-red hover:bg-brand-dark-red text-brand-yellow'
+                  }`}
+                >
+                  <span className="font-black text-xs font-inter uppercase tracking-[0.25em]">
+                    {isSubmitting ? 'Processing...' : paymentMethod === 'pay_on_app' ? 'Proceed to Payment' : 'Confirm Order'}
                   </span>
-                </div>
-              </button>
-            </div>
+                </button>
+              </div>
+            </section>
           </div>
         </div>
       </div>
@@ -479,10 +475,10 @@ export default function Checkout() {
         <button 
           onClick={handlePlaceOrder}
           disabled={isSubmitting}
-          className={`w-full max-w-lg mx-auto flex items-center justify-center rounded-lg h-14 text-white shadow-lg active:scale-95 disabled:opacity-50 ${
+          className={`w-full max-w-lg mx-auto flex items-center justify-center rounded-lg h-14 shadow-lg active:scale-95 disabled:opacity-50 ${
             paymentMethod === 'pay_on_app' 
-              ? 'bg-emerald-600' 
-              : 'bg-brand-red'
+              ? 'bg-slate-900 text-white' 
+              : 'bg-brand-red text-brand-yellow'
           }`}
         >
           <span className="font-bold text-sm font-inter uppercase tracking-widest">

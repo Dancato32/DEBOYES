@@ -154,6 +154,17 @@ def broadcast_rider_event(event_type, data):
         }
     )
 
+def broadcast_customer_event(customer_id, event_type, data):
+    """Broadcast an event to a specific customer's private group."""
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        f"user_{customer_id}",
+        {
+            "type": "customer_order_event",
+            "data": {"event": event_type, "payload": data}
+        }
+    )
+
 # SMART BATCHING ENGINE
 def create_batch(order):
     """
@@ -455,6 +466,11 @@ def accept_order(request, order_id):
 
     broadcast_admin_update("ORDER_ACCEPTED", {"order_id": order.id, "rider": request.user.username})
     broadcast_rider_event("ORDER_TAKEN", {"order_id": order.id})
+    broadcast_customer_event(order.customer.id, "ORDER_CONFIRMED", {
+        "order_id": order.id,
+        "status": "assigned",
+        "message": f"Your order has been confirmed by {request.user.username}!"
+    })
     return JsonResponse({"message": "Order accepted"})
 
 # RIDER ACCEPTS BATCH (SUPER ORDER)
@@ -565,6 +581,11 @@ def confirm_batch_stop(request, batch_id, order_id):
 
         # Notify admin and customer
         broadcast_admin_update("ORDER_STATUS_UPDATED", {"order_id": order.id, "status": "delivered"})
+        broadcast_customer_event(order.customer.id, "STATUS_CHANGE", {
+            "order_id": order.id,
+            "status": "delivered",
+            "message": "📦 Your order has been delivered! Enjoy your meal."
+        })
         return JsonResponse({
             "message": "Stop confirmed!",
             "all_done": batch.status == 'completed',
@@ -601,6 +622,11 @@ def start_batch_trip(request, batch_id):
                 order.picked_up_at = timezone.now()
                 order.save()
                 updated += 1
+                broadcast_customer_event(order.customer.id, "STATUS_CHANGE", {
+                    "order_id": order.id,
+                    "status": "on_the_way",
+                    "message": "Your rider has picked up your order and is on the way!"
+                })
 
             if batch.status != 'in_progress':
                 batch.status = 'in_progress'
@@ -675,6 +701,10 @@ def assigned_orders(request):
             'status': order.status,
             'address': order.address,
             'area': order.area,
+            'lat': order.lat,
+            'lng': order.lng,
+            'restaurant_lat': order.restaurant_lat,
+            'restaurant_lng': order.restaurant_lng,
             'total': str(order.total_price),
             'batch_id': order.batch_id,
             'stop_number': order.stop_number,
@@ -765,7 +795,11 @@ def track_order(request, order_id):
         "rider": order.rider.username if order.rider else None,
         "total": str(order.total_price),
         "items": items,
-        "batch_info": batch_info
+        "batch_info": batch_info,
+        "lat": order.lat,
+        "lng": order.lng,
+        "restaurant_lat": order.restaurant_lat,
+        "restaurant_lng": order.restaurant_lng,
     })
 
 @csrf_exempt

@@ -15,62 +15,44 @@ const OrderCard = ({ order, navigate, isRider }) => {
           navigate(`/track/${order.id}`)
         }
       }}
-      className={`bg-white rounded-lg p-5 shadow-sm hover:shadow-md transition-all cursor-pointer space-y-4 border ${isActive ? 'border-brand-red ring-1 ring-brand-red/20' : 'border-slate-200'}`}
+      className="group flex items-center justify-between py-5 px-6 hover:bg-slate-50 transition-all cursor-pointer"
     >
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 font-inter">{order.date}</p>
-          <p className="text-base font-bold font-poppins text-slate-800 tracking-tight">{isRider ? `#QB-${order.id}` : `Order #${order.id}`}</p>
-        </div>
-        <span className={`px-3 py-1 rounded text-[9px] font-bold uppercase tracking-widest font-inter ${
-          order.status === 'Delivered' 
-          ? 'bg-emerald-50 text-emerald-600' 
-          : isActive 
-          ? 'bg-brand-red text-white'
-          : 'bg-slate-100 text-slate-500'
+      <div className="flex items-center gap-4 min-w-0">
+        <div className={`h-10 w-10 flex items-center justify-center rounded-lg border text-sm font-black transition-colors ${
+          isActive ? 'bg-brand-red border-brand-red text-white' : 'bg-slate-50 border-slate-200 text-slate-400'
         }`}>
-          {isActive && !isRider ? '● LIVE' : order.status}
-        </span>
-      </div>
-
-      <div className="py-3 border-y border-slate-100 space-y-2">
-          {order.items.map((item, i) => (
-            <div key={i} className="flex items-center justify-between text-sm font-bold text-slate-700 font-inter">
-              <div className="flex items-center gap-3">
-                <div className="h-6 w-6 rounded-md overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0">
-                   {item.image ? (
-                    <img src={`${import.meta.env.VITE_API_URL || ''}${item.image}`} alt={item.food} className="h-full w-full object-cover" />
-                   ) : (
-                     <span className="text-xs">🍲</span>
-                   )}
-                </div>
-                <span>{item.food}</span>
-              </div>
-              <span className="text-slate-400 font-medium ml-1">x {item.qty}</span>
-            </div>
-          ))}
-      </div>
-
-      <div className="flex items-center justify-between pt-1">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 font-inter">{isRider ? 'Total Earned' : 'Total Paid'}</p>
-          <p className="text-2xl font-bold font-poppins text-brand-red">₵{order.total}</p>
+          #{order.id.toString().slice(-2)}
         </div>
-        <button 
-          onClick={(e) => {
-             if (isRider && order.status !== 'Delivered') {
-               e.stopPropagation()
-               navigate('/rider/active')
-             }
-          }}
-          className={`px-4 py-2 rounded text-[10px] font-bold uppercase tracking-widest transition-colors font-inter border ${
-            isActive 
-            ? 'bg-brand-red text-white border-brand-red hover:bg-brand-dark-red'
-            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-          }`}
-        >
-          {isRider ? 'Details' : (isActive ? 'Track Live' : 'Receipt')}
-        </button>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-bold text-slate-900 font-inter truncate">
+              {order.items.length} {order.items.length === 1 ? 'Item' : 'Items'}
+            </h3>
+            <span className={`text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border ${
+              order.status === 'Delivered' 
+              ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
+              : isActive 
+              ? 'bg-amber-50 text-amber-600 border-amber-100'
+              : 'bg-slate-50 text-slate-400 border-slate-200'
+            }`}>
+              {order.status}
+            </span>
+          </div>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{order.date}</p>
+        </div>
+      </div>
+
+
+      <div className="flex items-center gap-6">
+        <div className="text-right hidden sm:block">
+           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Amount</p>
+           <p className="text-sm font-black text-slate-900">₵{order.total}</p>
+        </div>
+        <div className="text-slate-300 group-hover:text-brand-red transition-colors">
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
       </div>
     </div>
   )
@@ -113,7 +95,7 @@ export default function History() {
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between relative z-10">
           <div className="flex items-center gap-3">
              <img src="/logo.png" alt="Logo" className="h-6 w-6 object-contain brightness-0 invert" />
-             <h1 className="text-sm font-bold font-inter text-white uppercase tracking-widest">{isRider ? 'Trip History' : 'My Orders'}</h1>
+             <h1 className="text-sm font-bold font-inter text-brand-yellow uppercase tracking-widest">{isRider ? 'Trip History' : 'My Orders'}</h1>
           </div>
           <button className="h-10 w-10 flex items-center justify-center text-white/70 rounded-lg border border-white/20 hover:bg-white/10 transition-colors">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -124,15 +106,10 @@ export default function History() {
       </header>
 
       <div className="mx-auto max-w-7xl px-6 pt-8">
-        {/* Active Orders Section */}
-        {orders.filter(o => !['Delivered', 'Cancelled'].includes(o.status)).length > 0 && (
-           <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-4 pl-1 font-inter">{isRider ? 'Active Trip' : 'Active Orders'}</h2>
-        )}
-
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="space-y-4">
             {[1,2,3].map(i => (
-              <div key={i} className="h-48 rounded-[16px] animate-pulse bg-white border-2 border-[#F0E8D8] shadow-sm" />
+              <div key={i} className="h-20 rounded-lg animate-pulse bg-white border border-slate-200" />
             ))}
           </div>
         ) : orders.length === 0 ? (
@@ -141,15 +118,32 @@ export default function History() {
             <p className="text-sm font-medium text-slate-400 font-inter">No past orders found in your records.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {orders.map(order => 
-              <OrderCard key={order.id} order={order} navigate={navigate} isRider={isRider} />
+          <div className="space-y-8">
+            {/* Active Orders Section */}
+            {orders.filter(o => !['Delivered', 'Cancelled'].includes(o.status)).length > 0 && (
+              <div>
+                <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4 px-1 font-inter">
+                  {isRider ? 'Active Trip' : 'Active Orders'}
+                </h2>
+                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden divide-y divide-slate-100">
+                  {orders.filter(o => !['Delivered', 'Cancelled'].includes(o.status)).map(order => (
+                    <OrderCard key={order.id} order={order} navigate={navigate} isRider={isRider} />
+                  ))}
+                </div>
+              </div>
             )}
-            
-            {/* Divider for Past Orders */}
+ 
+            {/* Past Orders Section */}
             {orders.filter(o => ['Delivered', 'Cancelled'].includes(o.status)).length > 0 && (
-              <div className="col-span-full pt-8 pb-3">
-                <h2 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 pl-1 font-inter">Past {isRider ? 'Trips' : 'Orders'}</h2>
+              <div>
+                <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4 px-1 font-inter">
+                  Past {isRider ? 'Trips' : 'Orders'}
+                </h2>
+                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden divide-y divide-slate-100">
+                  {orders.filter(o => ['Delivered', 'Cancelled'].includes(o.status)).map(order => (
+                    <OrderCard key={order.id} order={order} navigate={navigate} isRider={isRider} />
+                  ))}
+                </div>
               </div>
             )}
           </div>

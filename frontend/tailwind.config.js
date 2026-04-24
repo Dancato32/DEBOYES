@@ -5,11 +5,11 @@ export default {
     extend: {
       colors: {
         'brand': {
-          'red': '#C0111A',
-          'dark-red': '#8B0B11',
+          'red': '#ed1c24',
+          'dark-red': '#c0111a',
           'deep-dark': '#1A0A0B',
-          'gold': '#F5B50A',
-          'gold-light': '#FAD55A',
+          'yellow': '#ffcb05',
+          'yellow-light': '#ffdf66',
           'cream': '#FFFBEB',
           'charcoal': '#2D1215',
         }

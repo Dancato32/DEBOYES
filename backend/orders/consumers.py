@@ -3,9 +3,12 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 
 class OrderTrackingConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.order_id = self.scope['url_route']['kwargs']['order_id']
-        self.room_group_name = f"order_{self.order_id}"
-        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+        self.order_id = self.scope['url_route']['kwargs'].get('order_id')
+        if self.order_id:
+            self.room_group_name = f"order_{self.order_id}"
+            await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+        else:
+            self.room_group_name = None
         
         # User-specific group for direct notifications
         user = self.scope.get('user')
@@ -16,11 +19,14 @@ class OrderTrackingConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+        if self.room_group_name:
+            await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
         if hasattr(self, 'user_group'):
             await self.channel_layer.group_discard(self.user_group, self.channel_name)
 
     async def receive(self, text_data):
+        if not self.room_group_name:
+            return
         data = json.loads(text_data)
         await self.channel_layer.group_send(
             self.room_group_name,
@@ -43,6 +49,13 @@ class OrderTrackingConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'type': 'chat_message',
             'message': event['message']
+        }))
+
+    async def customer_order_event(self, event):
+        # Forward status change/notification to the WebSocket
+        await self.send(text_data=json.dumps({
+            'type': 'notification',
+            'data': event['data']
         }))
 
 class AdminUpdatesConsumer(AsyncWebsocketConsumer):

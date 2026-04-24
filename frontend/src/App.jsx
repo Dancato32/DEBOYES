@@ -15,6 +15,8 @@ import RiderAlerts from './pages/RiderAlerts'
 import RiderBatchDetails from './pages/RiderBatchDetails'
 import RiderActiveTrip from './pages/RiderActiveTrip'
 import PaymentSuccess from './pages/PaymentSuccess'
+import LocationRequest from './components/LocationRequest'
+import useGlobalNotifications from './hooks/useGlobalNotifications'
 
 function ProtectedRoute({ children, role }) {
   const { user, isAuthenticated } = useAuth()
@@ -43,6 +45,7 @@ import AdminSidebar from './components/AdminSidebar'
 export default function App() {
   const location = useLocation()
   const { user, loading } = useAuth()
+  useGlobalNotifications()
   
   const isAdminPath = location.pathname.startsWith('/admin')
   const isMobileLayoutPath = location.pathname === '/' || location.pathname === '/auth' || location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/onboarding' || location.pathname === '/customer' || location.pathname === '/checkout' || location.pathname === '/history' || location.pathname === '/profile' || location.pathname.startsWith('/rider') || location.pathname.startsWith('/track') || location.pathname.startsWith('/payment')
@@ -217,6 +220,7 @@ export default function App() {
         </main>
       </div>
       <ToastContainer position="top-right" theme="colored" />
+      <LocationRequest />
     </div>
   )
 }

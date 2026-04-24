@@ -139,18 +139,58 @@ export default function RiderActiveTrip() {
     }
   }
 
+  const [isSimulating, setIsSimulating] = useState(false)
+  const simulationInterval = useRef(null)
+ 
   const handleStartTrip = async () => {
     setConfirming(true)
     try {
       const res = await startBatchTrip(activeBatch.id)
       toast.success('🚀 ' + res.data.message)
       loadData()
+      // Start simulation automatically on trip start for better UX demo
+      setIsSimulating(true)
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to start trip')
     } finally {
       setConfirming(false)
     }
   }
+ 
+  // Simulation Logic: Gradually move riderPos towards destCoords
+  useEffect(() => {
+    if (isSimulating && riderPos && destCoords) {
+      simulationInterval.current = setInterval(() => {
+        setRiderPos(prev => {
+          if (!prev) return prev
+          const latDiff = destCoords.lat - prev.lat
+          const lngDiff = destCoords.lng - prev.lng
+          
+          // If close enough, stop simulation
+          if (Math.abs(latDiff) < 0.0001 && Math.abs(lngDiff) < 0.0001) {
+            setIsSimulating(false)
+            return destCoords
+          }
+ 
+          // Move 1% of the distance each step (roughly every 2 seconds)
+          return {
+            lat: prev.lat + (latDiff * 0.01),
+            lng: prev.lng + (lngDiff * 0.01)
+          }
+        })
+      }, 2000)
+    } else {
+      clearInterval(simulationInterval.current)
+    }
+    return () => clearInterval(simulationInterval.current)
+  }, [isSimulating, !!destCoords])
+ 
+  // Sync simulated position to server
+  useEffect(() => {
+    if (isSimulating && riderPos && activeBatch) {
+      sendLocation(riderPos.lat, riderPos.lng)
+    }
+  }, [riderPos, isSimulating])
 
   const handleOpenMaps = (address, coords = null) => {
     const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent)
@@ -219,7 +259,7 @@ export default function RiderActiveTrip() {
 
   const currentStop = activeBatch.orders[0]
   const isWaitingForPickup = currentStop.status === 'assigned'
-  const destCoords = getAreaCoords(currentStop.area)
+  const destCoords = currentStop.lat ? { lat: currentStop.lat, lng: currentStop.lng } : getAreaCoords(currentStop.area)
 
   return (
     <div className="min-h-screen bg-brand-cream text-slate-800 pb-32 font-inter overflow-x-hidden">
@@ -302,11 +342,23 @@ export default function RiderActiveTrip() {
            </div>
 
            <div className="absolute bottom-5 left-5 right-5 z-[1000] flex justify-between gap-3">
-              <div className="flex-1 rounded-2xl bg-white/95 backdrop-blur-md border border-[#F0E8D8] flex flex-col justify-center px-5 py-3 shadow-lg">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                   <span className={`h-2 w-2 rounded-full ${isWaitingForPickup ? 'bg-brand-red animate-pulse' : 'bg-emerald-500'}`} />
-                   {isWaitingForPickup ? 'Waiting at Pick-up' : 'Live GPS Tracking'}
-                </p>
+               <div className="flex-1 rounded-2xl bg-white/95 backdrop-blur-md border border-[#F0E8D8] flex flex-col justify-center px-5 py-3 shadow-lg">
+                 <div className="flex items-center justify-between">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                       <span className={`h-2 w-2 rounded-full ${isSimulating ? 'bg-brand-red animate-pulse' : 'bg-emerald-500'}`} />
+                       {isSimulating ? 'Simulating Delivery...' : 'Live GPS Tracking'}
+                    </p>
+                    {!isWaitingForPickup && (
+                      <button 
+                        onClick={() => setIsSimulating(!isSimulating)}
+                        className={`text-[8px] font-black uppercase px-2 py-1 rounded border transition-colors ${
+                          isSimulating ? 'bg-brand-red text-white border-brand-red' : 'bg-slate-50 text-slate-400 border-slate-200'
+                        }`}
+                      >
+                        {isSimulating ? 'Stop Sim' : 'Start Sim'}
+                      </button>
+                    )}
+                 </div>
               </div>
               <button
                 onClick={() => handleOpenMaps(currentStop.address, destCoords)}
