@@ -17,7 +17,8 @@ from .views import (
     get_order_messages,
     send_order_message,
     mark_messages_as_read,
-    verify_payment_view
+    verify_payment_view,
+    cancel_order
 )
 
 urlpatterns = [
@@ -41,6 +42,7 @@ urlpatterns = [
     path('batches/<int:batch_id>/start/', start_batch_trip),
     path('batches/<int:batch_id>/stop/<int:order_id>/confirm/', confirm_batch_stop),
     
+    path('cancel/<int:order_id>/', cancel_order),
     # Payment
     path('verify-payment/<str:reference>/', verify_payment_view),
 ]

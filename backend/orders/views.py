@@ -235,6 +235,35 @@ def auto_assign_rider(order):
 
 from .utils import calculate_delivery_fee
 
+# CANCEL ORDER (Customer only — before a rider is assigned)
+@csrf_exempt
+@token_required
+def cancel_order(request, order_id):
+    """Allow a customer to cancel their order ONLY if it hasn't been assigned to a rider yet."""
+    if not request.user.is_customer():
+        return JsonResponse({"error": "Only customers can cancel orders"}, status=403)
+
+    try:
+        order = Order.objects.get(id=order_id, customer=request.user)
+    except Order.DoesNotExist:
+        return JsonResponse({"error": "Order not found"}, status=404)
+
+    # Only allow cancellation while order is in preparation (not yet assigned)
+    cancellable_statuses = ['new', 'pending']
+    if order.status not in cancellable_statuses:
+        return JsonResponse({
+            "error": "This order can no longer be cancelled. A rider has already been assigned."
+        }, status=400)
+
+    order.status = 'cancelled'
+    order.save(update_fields=['status'])
+
+    clear_admin_stats_cache()
+    broadcast_admin_update("ORDER_CANCELLED", {"order_id": order.id})
+
+    return JsonResponse({"message": "Order cancelled successfully"})
+
+
 # GET ESTIMATED DELIVERY FEE
 @csrf_exempt
 @token_required
