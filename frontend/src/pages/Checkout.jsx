@@ -107,42 +107,52 @@ export default function Checkout() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFCF8] pb-10 font-inter text-slate-800">
-      {/* Top Header */}
-      <div className="px-6 py-6 flex items-center justify-between">
-        <button onClick={() => navigate(-1)} className="h-12 w-12 rounded-full bg-white shadow-sm flex items-center justify-center border border-slate-100 active:scale-90 transition-all">
-          <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" /></svg>
-        </button>
-        <div className="flex gap-1.5">
-           <div className="h-1.5 w-6 rounded-full bg-brand-red opacity-70" />
-           <div className="h-1.5 w-2 rounded-full bg-slate-200" />
-           <div className="h-1.5 w-2 rounded-full bg-slate-200" />
-        </div>
+    <div className="min-h-screen bg-brand-cream pb-10 font-inter text-slate-800 relative overflow-hidden">
+      {/* Background Watermark */}
+      <div className="fixed top-20 -right-20 opacity-[0.02] pointer-events-none rotate-12">
+        <img src="/logo.png" alt="" className="h-[600px] w-[600px] object-contain" />
       </div>
 
-      <div className="max-w-md mx-auto px-6 space-y-8">
+      {/* Top Header */}
+      <div className="px-6 py-8 flex items-center justify-between sticky top-0 bg-brand-cream/80 backdrop-blur-md z-[100]">
+        <button onClick={() => navigate(-1)} className="h-12 w-12 rounded-full bg-white shadow-sm flex items-center justify-center border border-slate-100 active:scale-90 transition-all">
+          <svg className="w-5 h-5 text-brand-red" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+        </button>
+        <div className="flex flex-col items-center">
+           <img src="/logo.png" alt="Logo" className="h-6 w-auto object-contain mb-1" />
+           <div className="flex gap-1.5">
+              <div className="h-1 w-6 rounded-full bg-brand-red" />
+              <div className="h-1 w-2 rounded-full bg-brand-red/20" />
+           </div>
+        </div>
+        <div className="w-12"></div>
+      </div>
+
+      <div className="max-w-md mx-auto px-6 space-y-8 relative z-10">
         
         {/* DELIVERY DESTINATION */}
         <section className="space-y-4">
-          <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Delivery Destination</h2>
-          <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-6">
+          <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-red">Delivery Destination</h2>
+          <div className="bg-white rounded-[2rem] p-6 border border-brand-red/5 shadow-soft space-y-6">
             <div className="flex items-center justify-between border-b border-slate-50 pb-6">
               <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-2xl bg-brand-red/5 flex items-center justify-center text-brand-red shadow-inner">
+                <div className="h-12 w-12 rounded-2xl bg-brand-red flex items-center justify-center text-brand-yellow shadow-lg shadow-brand-red/20">
                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z" />
                    </svg>
                 </div>
                 <div>
                    <p className="text-sm font-black text-slate-900 leading-none">Live GPS Detection</p>
-                   <p className="text-[9px] font-black uppercase tracking-widest text-slate-300 mt-1">Precision Location</p>
+                   <p className="text-[9px] font-black uppercase tracking-widest text-slate-300 mt-1">Satellite Precision</p>
                 </div>
               </div>
               <button 
                 onClick={handleUseLocation}
-                className="text-[9px] font-black uppercase tracking-widest px-6 py-3 rounded-xl border border-slate-100 text-slate-200 hover:text-brand-red transition-colors"
+                className={`text-[9px] font-black uppercase tracking-widest px-6 py-3 rounded-xl border transition-all ${
+                  locating ? 'bg-slate-50 text-slate-300' : 'bg-white border-slate-100 text-brand-red hover:bg-brand-red hover:text-white'
+                }`}
               >
-                {locating ? '...' : 'Detect'}
+                {locating ? 'Detecting...' : 'Detect'}
               </button>
             </div>
 
@@ -153,7 +163,7 @@ export default function Checkout() {
                     value={address}
                     onChange={e => setAddress(e.target.value)}
                     placeholder="e.g. 12th Floor, Trade Tower"
-                    className="w-full bg-[#333333] text-white rounded-xl px-4 py-4 text-sm font-bold placeholder:text-slate-500 border-none outline-none ring-offset-2 focus:ring-2 focus:ring-brand-red/20 transition-all"
+                    className="w-full bg-brand-deep-dark text-white rounded-2xl px-5 py-4 text-sm font-bold placeholder:text-slate-600 border-none outline-none ring-offset-2 focus:ring-2 focus:ring-brand-red/40 transition-all"
                  />
                </div>
                <div className="space-y-1.5">
@@ -162,7 +172,7 @@ export default function Checkout() {
                     value={area}
                     onChange={e => setArea(e.target.value)}
                     placeholder="e.g. East Legon"
-                    className="w-full bg-[#333333] text-white rounded-xl px-4 py-4 text-sm font-bold placeholder:text-slate-500 border-none outline-none ring-offset-2 focus:ring-2 focus:ring-brand-red/20 transition-all"
+                    className="w-full bg-brand-deep-dark text-white rounded-2xl px-5 py-4 text-sm font-bold placeholder:text-slate-600 border-none outline-none ring-offset-2 focus:ring-2 focus:ring-brand-red/40 transition-all"
                  />
                </div>
             </div>
@@ -171,7 +181,7 @@ export default function Checkout() {
 
         {/* PAYMENT METHOD */}
         <section className="space-y-4">
-           <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Payment Method</h2>
+           <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-red">Payment Method</h2>
            <div className="grid grid-cols-3 gap-3">
               {[
                 { id: 'card', label: 'Card', icon: '💳' },
@@ -181,14 +191,14 @@ export default function Checkout() {
                 <button 
                   key={method.id}
                   onClick={() => setPaymentMethod(method.id)}
-                  className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border transition-all duration-300 ${
+                  className={`flex flex-col items-center justify-center gap-2 p-5 rounded-2xl border transition-all duration-300 ${
                     paymentMethod === method.id 
-                    ? 'bg-white border-brand-red shadow-lg shadow-brand-red/5' 
-                    : 'bg-white border-slate-50 opacity-60'
+                    ? 'bg-brand-red border-brand-red shadow-xl shadow-brand-red/20' 
+                    : 'bg-white border-slate-50 opacity-60 hover:opacity-100 hover:border-slate-200'
                   }`}
                 >
-                  <span className="text-xl grayscale-[0.5] group-hover:grayscale-0">{method.icon}</span>
-                  <span className={`text-[10px] font-bold ${paymentMethod === method.id ? 'text-brand-red' : 'text-slate-400'}`}>{method.label}</span>
+                  <span className={`text-xl ${paymentMethod === method.id ? 'brightness-0 invert' : ''}`}>{method.icon}</span>
+                  <span className={`text-[10px] font-black uppercase tracking-widest ${paymentMethod === method.id ? 'text-brand-yellow' : 'text-slate-400'}`}>{method.label}</span>
                 </button>
               ))}
            </div>
@@ -196,9 +206,9 @@ export default function Checkout() {
 
         {/* ORDER SUMMARY */}
         <section className="space-y-4">
-           <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Order Summary</h2>
-           <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm space-y-6">
-              <div className="space-y-4">
+           <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-red">Order Summary</h2>
+           <div className="bg-white rounded-[2rem] p-6 border border-brand-red/5 shadow-soft space-y-6">
+              <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                  {cartItems.map(item => (
                    <div key={item.food_id} className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
@@ -210,29 +220,34 @@ export default function Checkout() {
                             <p className="text-[10px] font-bold text-slate-300 mt-1 uppercase tracking-widest">₵{item.price} × {item.qty}</p>
                          </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                         <button onClick={() => updateQty(item.food_id, item.qty - 1)} className="h-8 w-8 rounded-lg border border-slate-50 text-slate-200 flex items-center justify-center text-lg font-bold hover:bg-slate-50 transition-colors">−</button>
+                      <div className="flex items-center gap-3 bg-slate-50 p-1 rounded-xl">
+                         <button onClick={() => updateQty(item.food_id, item.qty - 1)} className="h-8 w-8 rounded-lg bg-white shadow-sm text-slate-400 flex items-center justify-center text-lg font-bold hover:text-brand-red transition-colors">−</button>
                          <span className="text-sm font-black w-4 text-center">{item.qty}</span>
-                         <button onClick={() => updateQty(item.food_id, item.qty + 1)} className="h-8 w-8 rounded-lg border border-slate-50 text-slate-200 flex items-center justify-center text-lg font-bold hover:bg-slate-50 transition-colors">+</button>
+                         <button onClick={() => updateQty(item.food_id, item.qty + 1)} className="h-8 w-8 rounded-lg bg-white shadow-sm text-slate-400 flex items-center justify-center text-lg font-bold hover:text-brand-red transition-colors">+</button>
                       </div>
                    </div>
                  ))}
               </div>
 
               <div className="pt-6 border-t border-dashed border-slate-100 space-y-3">
-                 <div className="flex justify-between text-xs font-bold text-slate-400">
+                 <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
                     <span>Subtotal</span>
-                    <span>₵{total.toFixed(2)}</span>
+                    <span className="text-slate-900 font-inter">₵{total.toFixed(2)}</span>
                  </div>
-                 <div className="flex justify-between text-xs font-bold text-slate-400">
-                    <span>Delivery</span>
-                    <span className="bg-emerald-50 text-emerald-500 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest">Free</span>
+                 <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    <div className="flex items-center gap-2">
+                       <span>Delivery</span>
+                       {feeZone && <span className="bg-brand-red/5 text-brand-red px-2 py-0.5 rounded text-[8px] tracking-normal">{feeZone}</span>}
+                    </div>
+                    <span className={`${calculatingFee ? 'animate-pulse' : 'text-brand-red'} font-inter`}>
+                      {deliveryFee === 0 && !calculatingFee ? 'FREE' : `₵${deliveryFee.toFixed(2)}`}
+                    </span>
                  </div>
               </div>
 
-              <div className="pt-4 flex justify-between items-center">
-                 <span className="text-base font-black text-slate-900 italic uppercase">Total</span>
-                 <span className="text-2xl font-black text-slate-900 font-inter">₵{grandTotal.toFixed(2)}</span>
+              <div className="pt-4 flex justify-between items-center border-t border-slate-50">
+                 <span className="text-xs font-black text-slate-900 uppercase tracking-[0.2em] italic">Total Payable</span>
+                 <span className="text-3xl font-black text-slate-900 font-inter tracking-tighter italic">₵{grandTotal.toFixed(2)}</span>
               </div>
            </div>
         </section>
@@ -242,15 +257,15 @@ export default function Checkout() {
            <button 
               onClick={handlePlaceOrder}
               disabled={isSubmitting}
-              className="w-full h-16 bg-[#222222] text-white rounded-2xl flex items-center justify-center gap-4 active:scale-[0.98] transition-all shadow-2xl disabled:opacity-50"
+              className="w-full h-16 bg-brand-red text-brand-yellow rounded-2xl flex items-center justify-center gap-4 active:scale-[0.98] transition-all shadow-xl shadow-brand-red/20 disabled:opacity-50"
            >
-              <span className="text-sm font-black uppercase tracking-[0.2em]">Place order</span>
-              <div className="bg-slate-700/50 px-3 py-1.5 rounded-lg text-sm font-black text-white/90">
+              <span className="text-sm font-black uppercase tracking-[0.25em]">{isSubmitting ? 'Processing...' : 'Place order'}</span>
+              <div className="bg-brand-yellow text-brand-red px-4 py-1.5 rounded-xl text-sm font-black italic">
                  ₵{grandTotal.toFixed(2)}
               </div>
            </button>
-           <p className="flex items-center justify-center gap-2 text-[9px] font-bold text-slate-300 uppercase tracking-widest">
-              <span>🔒</span> Secured & encrypted checkout
+           <p className="flex items-center justify-center gap-2 text-[9px] font-black text-slate-300 uppercase tracking-[0.2em]">
+              <span className="text-emerald-500">🔒</span> Secured & encrypted checkout
            </p>
         </div>
 
