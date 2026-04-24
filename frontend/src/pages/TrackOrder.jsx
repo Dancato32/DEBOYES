@@ -70,6 +70,8 @@ export default function TrackOrder() {
   // Progress segments logic
   const segments = [1, 2, 3, 4, 5, 6]
 
+  const showMap = order?.status === 'on_the_way' || order?.status === 'delivered'
+
   if (loading && !order) return (
     <div className="min-h-screen bg-brand-cream flex items-center justify-center p-10">
       <div className="text-center space-y-4">
@@ -81,18 +83,43 @@ export default function TrackOrder() {
 
   return (
     <div className="h-screen w-screen bg-white relative overflow-hidden font-inter">
-      {/* FULL BLEED MAP BACKGROUND */}
-      <div className="absolute inset-0 z-0">
-        <MapTracker
-          position={order?.status === 'on_the_way' 
-            ? (position || { lat: order?.restaurant_lat, lng: order?.restaurant_lng })
-            : { lat: order?.restaurant_lat, lng: order?.restaurant_lng }
-          }
-          destination={{ lat: order?.lat, lng: order?.lng }}
-          restaurant={{ lat: order?.restaurant_lat, lng: order?.restaurant_lng }}
-          darkMode={false}
-          isRiderMoving={order?.status === 'on_the_way'}
-        />
+      {/* BACKGROUND CONTENT: MAP OR PREPARATION VIEW */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        {showMap ? (
+          <MapTracker
+            position={position || { lat: order?.restaurant_lat, lng: order?.restaurant_lng }}
+            destination={{ lat: order?.lat, lng: order?.lng }}
+            restaurant={{ lat: order?.restaurant_lat, lng: order?.restaurant_lng }}
+            darkMode={false}
+            isRiderMoving={true}
+          />
+        ) : (
+          <div className="h-full w-full bg-brand-cream relative flex flex-col items-center justify-center pt-20">
+            {/* Logo Watermark */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.03] pointer-events-none scale-150">
+               <img src="/logo.png" alt="" className="w-96 h-96 object-contain" />
+            </div>
+            
+            {/* Illustration */}
+            <div className="relative w-full max-w-[280px] aspect-square rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white rotate-3">
+               <img 
+                 src="/food_preparation_premium_1776994531766.png" 
+                 alt="Preparing" 
+                 className="h-full w-full object-cover"
+               />
+               <div className="absolute inset-0 bg-gradient-to-t from-brand-red/20 to-transparent" />
+            </div>
+
+            <div className="mt-12 text-center space-y-2 px-10">
+               <div className="flex items-center justify-center gap-2 mb-4">
+                  <div className="h-2 w-2 rounded-full bg-brand-red animate-ping" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-red">Active Kitchen</span>
+               </div>
+               <h3 className="text-2xl font-black text-slate-900 tracking-tight leading-tight">Greatness is being <br/> prepared for you</h3>
+               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-loose mt-4">The map will activate once our <br/> rider confirms your pickup</p>
+            </div>
+          </div>
+        )}
       </div>
 
       <AnimatePresence>
@@ -101,7 +128,6 @@ export default function TrackOrder() {
             orderId={orderId}
             orderStatus={order?.status}
             onClose={() => setShowChat(false)}
-            incomingMessages={allMessages}
           />
         )}
       </AnimatePresence>
