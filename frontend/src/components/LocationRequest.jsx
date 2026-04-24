@@ -1,22 +1,43 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
+/**
+ * LocationRequest — shown once on app open.
+ * On grant: saves { lat, lng, address, area } to localStorage under 'saved_location'.
+ * Checkout reads from this key to pre-fill without asking again.
+ */
 export default function LocationRequest() {
   const [show, setShow] = useState(false)
-  const [status, setStatus] = useState('idle') // idle, requesting, granted, denied
+  const [status, setStatus] = useState('idle') // idle | requesting | granted | denied
 
   useEffect(() => {
-    // Check if permission was already handled in this session or previously
-    const permissionHandled = localStorage.getItem('location_permission_handled')
-    
-    if (!permissionHandled) {
-      // Small delay for better UX after splash/loading
-      const timer = setTimeout(() => {
-        setShow(true)
-      }, 1500)
-      return () => clearTimeout(timer)
-    }
+    // Don't show if permission was already handled (granted OR dismissed)
+    const saved = localStorage.getItem('saved_location')
+    const dismissed = localStorage.getItem('location_permission_dismissed')
+    if (saved || dismissed) return
+
+    const timer = setTimeout(() => setShow(true), 1500)
+    return () => clearTimeout(timer)
   }, [])
+
+  const reverseGeocode = async (lat, lng) => {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&zoom=18`
+      )
+      const data = await res.json()
+      if (data?.display_name) {
+        const addr = data.address || {}
+        const parts = [addr.road, addr.house_number, addr.neighbourhood || addr.suburb].filter(Boolean)
+        const address = parts.join(', ') || data.display_name.split(',')[0]
+        const area = addr.suburb || addr.neighbourhood || addr.city_district || addr.city || ''
+        return { address, area }
+      }
+    } catch (e) {
+      console.error('Reverse geocode failed:', e)
+    }
+    return { address: '', area: '' }
+  }
 
   const handleAllow = () => {
     setStatus('requesting')
@@ -26,77 +47,111 @@ export default function LocationRequest() {
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (pos) => {
+        const { latitude: lat, longitude: lng } = pos.coords
+        const { address, area } = await reverseGeocode(lat, lng)
+
+        // Save everything to localStorage — Checkout will read this
+        localStorage.setItem('saved_location', JSON.stringify({ lat, lng, address, area }))
+
         setStatus('granted')
-        localStorage.setItem('location_permission_handled', 'true')
-        setShow(false)
-        // You could also store coordinates globally here if needed
+        setTimeout(() => setShow(false), 800)
       },
       (error) => {
         console.error('Location error:', error)
         setStatus('denied')
-        localStorage.setItem('location_permission_handled', 'true')
-        // We don't hide immediately to allow user to see it failed or retry
+        localStorage.setItem('location_permission_dismissed', 'true')
         setTimeout(() => setShow(false), 2000)
       },
-      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     )
   }
 
   const handleDismiss = () => {
-    localStorage.setItem('location_permission_handled', 'true')
+    localStorage.setItem('location_permission_dismissed', 'true')
     setShow(false)
   }
 
   return (
     <AnimatePresence>
       {show && (
-        <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-6 bg-slate-900/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-sm">
           <motion.div
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="w-full max-w-md bg-white rounded-t-[2.5rem] sm:rounded-[2.5rem] overflow-hidden shadow-2xl"
+            className="w-full max-w-md bg-brand-cream rounded-t-[2.5rem] sm:rounded-[2.5rem] overflow-hidden shadow-2xl"
           >
             {/* Brand Header */}
-            <div className="bg-brand-red h-32 relative overflow-hidden flex items-center justify-center">
-               <div className="absolute inset-0 opacity-10">
+            <div className="bg-brand-red h-36 relative overflow-hidden flex items-center justify-center">
+               <div className="absolute inset-0 opacity-[0.15]">
                  <img src="/logo.png" alt="" className="w-full h-full object-contain scale-150 rotate-12" />
                </div>
-               <div className="relative z-10 h-16 w-16 bg-white rounded-2xl shadow-xl flex items-center justify-center text-brand-red animate-bounce">
-                  <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-                    <path fillRule="evenodd" d="M11.545 20.91c-.008.006-.015.012-.022.017a.774.774 0 01-.039.027.505.505 0 01-.059.035c-.082.041-.2.09-.35.135a2.73 2.73 0 01-1.026.19c-.368 0-.728-.063-1.025-.19a2.887 2.887 0 01-.35-.135 1.582 1.582 0 01-.098-.062l-.022-.017C7.75 20.245 2.5 15.05 2.5 9.5a9.5 9.5 0 1119 0c0 5.55-5.25 10.745-6.045 11.41zM12 13.5a4 4 0 100-8 4 4 0 000 8z" clipRule="evenodd" />
-                  </svg>
+               <div className={`relative z-10 h-20 w-20 bg-white rounded-3xl shadow-2xl flex items-center justify-center text-brand-red transition-transform duration-500 ${status === 'granted' ? 'scale-110' : 'animate-bounce'}`}>
+                  {status === 'granted' ? (
+                    <svg className="w-10 h-10 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z" />
+                    </svg>
+                  )}
                </div>
             </div>
 
             <div className="p-8 text-center space-y-6">
-              <div className="space-y-2">
-                <h2 className="text-2xl font-black font-poppins text-slate-800 uppercase tracking-tight">Enable Location</h2>
-                <p className="text-sm text-slate-500 font-inter leading-relaxed max-w-[280px] mx-auto">
-                  To provide accurate delivery times and track your rider in real-time, we need to access your location.
+              <div className="space-y-3">
+                <h2 className="text-2xl font-black text-slate-900 tracking-tight font-outfit">
+                  {status === 'granted' ? 'Location Saved! ✓' : 'Enable Location'}
+                </h2>
+                <p className="text-[13px] font-medium text-slate-400 leading-relaxed max-w-[280px] mx-auto">
+                  {status === 'denied'
+                    ? 'Location access was denied. You can manually enter your address at checkout.'
+                    : 'We'll use your location to auto-fill your delivery address and give you an accurate fee estimate instantly.'}
                 </p>
               </div>
 
+              {/* Benefits pills */}
+              {status === 'idle' && (
+                <div className="flex flex-wrap justify-center gap-2">
+                  {['Auto-fill address', 'Accurate ETA', 'One-tap checkout'].map(pill => (
+                    <span key={pill} className="text-[10px] font-black uppercase tracking-widest bg-white border border-slate-100 text-slate-500 px-3 py-1.5 rounded-full">
+                      {pill}
+                    </span>
+                  ))}
+                </div>
+              )}
+
               <div className="flex flex-col gap-3 pt-2">
-                <button
-                  onClick={handleAllow}
-                  disabled={status === 'requesting'}
-                  className="w-full py-4 rounded-2xl bg-brand-red text-white text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-brand-red/20 active:scale-95 transition-all disabled:opacity-50"
-                >
-                  {status === 'requesting' ? 'Requesting...' : status === 'granted' ? 'Location Enabled!' : 'Allow Location Access'}
-                </button>
-                <button
-                  onClick={handleDismiss}
-                  className="w-full py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-slate-600 transition-colors"
-                >
-                  Not Now
-                </button>
+                {status !== 'granted' && status !== 'denied' && (
+                  <button
+                    onClick={handleAllow}
+                    disabled={status === 'requesting'}
+                    className="w-full py-5 rounded-2xl bg-brand-red text-white text-[11px] font-black uppercase tracking-[0.3em] shadow-lg shadow-brand-red/20 active:scale-95 transition-all disabled:opacity-60 relative overflow-hidden group"
+                  >
+                    <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    {status === 'requesting' ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                        Detecting Location...
+                      </span>
+                    ) : 'Allow Location Access'}
+                  </button>
+                )}
+                {status !== 'granted' && (
+                  <button
+                    onClick={handleDismiss}
+                    className="w-full py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-slate-600 transition-colors"
+                  >
+                    Not Now
+                  </button>
+                )}
               </div>
 
               <p className="text-[9px] font-medium text-slate-300 uppercase tracking-widest">
-                You can change this anytime in settings
+                Your location is never stored on our servers
               </p>
             </div>
           </motion.div>

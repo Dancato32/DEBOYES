@@ -28,20 +28,20 @@ export default function Checkout() {
 
   const grandTotal = total > 0 ? total + (deliveryFee || 0) : 0
 
-  const reverseGeocode = async (lat, lng) => {
-    try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&zoom=18`)
-      const data = await res.json()
-      if (data?.display_name) {
-        const addr = data.address || {}
-        const parts = [addr.road, addr.house_number, addr.neighbourhood || addr.suburb].filter(Boolean)
-        setAddress(parts.join(', '))
-        setArea(addr.suburb || addr.neighbourhood || addr.city_district || addr.city || '')
+  // On mount: pre-fill from cached location (set by LocationRequest on app open)
+  useEffect(() => {
+    const cached = localStorage.getItem('saved_location')
+    if (cached) {
+      try {
+        const { lat, lng, address: savedAddress, area: savedArea } = JSON.parse(cached)
+        if (savedAddress) setAddress(savedAddress)
+        if (savedArea) setArea(savedArea)
+        if (lat && lng) setCoords({ lat, lng })
+      } catch (e) {
+        console.error('Failed to parse saved location', e)
       }
-    } catch (err) {
-      console.error(err)
     }
-  }
+  }, [])
 
   const handleUseLocation = () => {
     if (!navigator.geolocation) return
@@ -50,8 +50,22 @@ export default function Checkout() {
       async (pos) => {
         const { latitude: lat, longitude: lng } = pos.coords
         setCoords({ lat, lng })
-        setShowMap(true)
-        await reverseGeocode(lat, lng)
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&zoom=18`)
+          const data = await res.json()
+          if (data?.display_name) {
+            const addr = data.address || {}
+            const parts = [addr.road, addr.house_number, addr.neighbourhood || addr.suburb].filter(Boolean)
+            const newAddress = parts.join(', ') || data.display_name.split(',')[0]
+            const newArea = addr.suburb || addr.neighbourhood || addr.city_district || addr.city || ''
+            setAddress(newAddress)
+            setArea(newArea)
+            // Refresh the cached location with the latest detection
+            localStorage.setItem('saved_location', JSON.stringify({ lat, lng, address: newAddress, area: newArea }))
+          }
+        } catch (err) {
+          console.error(err)
+        }
         setLocating(false)
       },
       () => setLocating(false),
