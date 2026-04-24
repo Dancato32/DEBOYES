@@ -46,8 +46,32 @@ textarea:focus {
   @apply border border-slate-800 bg-slate-900/80 backdrop-blur-xl;
 }
 
+.font-outfit {
+  font-family: 'Outfit', sans-serif;
+}
+
 button {
-  @apply transition-all duration-200 active:scale-[0.98];
+  @apply transition-all duration-300 active:scale-[0.96] hover:brightness-110;
+}
+
+.shadow-premium {
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05);
+}
+
+.shadow-brand {
+  box-shadow: 0 20px 30px -10px rgba(255, 59, 48, 0.2);
+}
+
+input,
+select,
+textarea {
+  @apply rounded-2xl border border-slate-100 bg-white px-5 py-4 text-sm text-slate-900 outline-none transition-all duration-300 ease-out placeholder:text-slate-300;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  @apply border-brand-red ring-4 ring-brand-red/5;
 }
 
 ::selection {
