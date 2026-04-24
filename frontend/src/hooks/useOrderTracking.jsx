@@ -11,8 +11,10 @@ export default function useOrderTracking(orderId) {
   useEffect(() => {
     if (!orderId) return
 
+    const productionURL = 'deboyes-89k1.onrender.com'
+    const baseUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/^https?:\/\//, '') : productionURL
     const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
-    const socketUrl = `${wsProtocol}://${window.location.host}/ws/tracking/${orderId}/`
+    const socketUrl = `${wsProtocol}://${baseUrl}/ws/tracking/${orderId}/`
     const socket = new WebSocket(socketUrl)
     socketRef.current = socket
 
