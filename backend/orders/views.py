@@ -549,12 +549,10 @@ def get_available_batches(request):
     if not request.user.is_rider():
         return JsonResponse({"error": "Only riders allowed"}, status=403)
     
-    # Only show batches that have 3 orders OR have been waiting longer than 15 mins (window expired)
+    # Show all available batches that have at least one order
     batches = DeliveryBatch.objects.annotate(order_count=Count('orders')).filter(
         status='available',
         order_count__gt=0
-    ).filter(
-        Q(order_count=3) | Q(window_expires_at__lte=timezone.now())
     ).prefetch_related('orders').order_by('-created_at')
 
     data = []
