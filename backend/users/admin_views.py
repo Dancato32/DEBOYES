@@ -87,6 +87,8 @@ def get_all_orders(request):
             "total": str(o.total_price),
             "delivery_fee": str(o.delivery_fee),
             "delivery_zone": o.delivery_zone_name or "N/A",
+            "address": o.address,
+            "area": o.area,
             "status": o.status.replace('_', ' ').title(),
             "rider": o.rider.username if o.rider else "Unassigned",
             "payment_method": o.get_payment_method_display(),
