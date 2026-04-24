@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { placeOrder, estimateFee } from '../services/api'
 import { toast } from '../utils/soundToast'
+import { Geolocation } from '@capacitor/geolocation'
 import L from 'leaflet'
 
 export default function Checkout() {
@@ -43,34 +44,42 @@ export default function Checkout() {
     }
   }, [])
 
-  const handleUseLocation = () => {
-    if (!navigator.geolocation) return
+  const handleUseLocation = async () => {
     setLocating(true)
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude: lat, longitude: lng } = pos.coords
-        setCoords({ lat, lng })
-        try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&zoom=18`)
-          const data = await res.json()
-          if (data?.display_name) {
-            const addr = data.address || {}
-            const parts = [addr.road, addr.house_number, addr.neighbourhood || addr.suburb].filter(Boolean)
-            const newAddress = parts.join(', ') || data.display_name.split(',')[0]
-            const newArea = addr.suburb || addr.neighbourhood || addr.city_district || addr.city || ''
-            setAddress(newAddress)
-            setArea(newArea)
-            // Refresh the cached location with the latest detection
-            localStorage.setItem('saved_location', JSON.stringify({ lat, lng, address: newAddress, area: newArea }))
-          }
-        } catch (err) {
-          console.error(err)
+    try {
+      let perm = await Geolocation.checkPermissions()
+      if (perm.location !== 'granted') {
+        perm = await Geolocation.requestPermissions()
+      }
+      if (perm.location !== 'granted') {
+        throw new Error('Permission denied')
+      }
+
+      const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true })
+      const { latitude: lat, longitude: lng } = pos.coords
+      setCoords({ lat, lng })
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&zoom=18`)
+        const data = await res.json()
+        if (data?.display_name) {
+          const addr = data.address || {}
+          const parts = [addr.road, addr.house_number, addr.neighbourhood || addr.suburb].filter(Boolean)
+          const newAddress = parts.join(', ') || data.display_name.split(',')[0]
+          const newArea = addr.suburb || addr.neighbourhood || addr.city_district || addr.city || ''
+          setAddress(newAddress)
+          setArea(newArea)
+          // Refresh the cached location with the latest detection
+          localStorage.setItem('saved_location', JSON.stringify({ lat, lng, address: newAddress, area: newArea }))
         }
-        setLocating(false)
-      },
-      () => setLocating(false),
-      { enableHighAccuracy: true }
-    )
+      } catch (err) {
+        console.error(err)
+      }
+    } catch (err) {
+      console.error(err)
+      toast.error('Location detection failed. Please check device permissions.')
+    } finally {
+      setLocating(false)
+    }
   }
 
   useEffect(() => {

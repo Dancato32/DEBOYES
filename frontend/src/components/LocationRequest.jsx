@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { updateUserLocation } from '../services/api'
+import { Geolocation } from '@capacitor/geolocation'
 /**
  * LocationRequest — shown once on app open.
  * On grant: saves { lat, lng, address, area } to localStorage under 'saved_location'.
@@ -39,37 +40,37 @@ export default function LocationRequest() {
     return { address: '', area: '' }
   }
 
-  const handleAllow = () => {
+  const handleAllow = async () => {
     setStatus('requesting')
-    if (!navigator.geolocation) {
+    try {
+      let perm = await Geolocation.checkPermissions()
+      if (perm.location !== 'granted') {
+        perm = await Geolocation.requestPermissions()
+      }
+      if (perm.location !== 'granted') {
+        throw new Error('Permission denied')
+      }
+
+      const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 10000, maximumAge: 0 })
+      const { latitude: lat, longitude: lng } = pos.coords
+      const { address, area } = await reverseGeocode(lat, lng)
+
+      // Save everything to localStorage — Checkout will read this
+      localStorage.setItem('saved_location', JSON.stringify({ lat, lng, address, area }))
+
+      // Send to backend (fails silently if unauthenticated)
+      try {
+        await updateUserLocation({ lat, lng })
+      } catch (e) {}
+
+      setStatus('granted')
+      setTimeout(() => setShow(false), 800)
+    } catch (error) {
+      console.error('Location error:', error)
       setStatus('denied')
-      return
+      localStorage.setItem('location_permission_dismissed', 'true')
+      setTimeout(() => setShow(false), 2000)
     }
-
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude: lat, longitude: lng } = pos.coords
-        const { address, area } = await reverseGeocode(lat, lng)
-
-        // Save everything to localStorage — Checkout will read this
-        localStorage.setItem('saved_location', JSON.stringify({ lat, lng, address, area }))
-
-        // Send to backend (fails silently if unauthenticated)
-        try {
-          await updateUserLocation({ lat, lng })
-        } catch (e) {}
-
-        setStatus('granted')
-        setTimeout(() => setShow(false), 800)
-      },
-      (error) => {
-        console.error('Location error:', error)
-        setStatus('denied')
-        localStorage.setItem('location_permission_dismissed', 'true')
-        setTimeout(() => setShow(false), 2000)
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    )
   }
 
   const handleDismiss = () => {
