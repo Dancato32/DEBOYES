@@ -94,17 +94,7 @@ export default function Profile() {
               </div>
             </section>
 
-            {/* Visual Stats Bar */}
-            <section className="flex gap-4">
-               <div className="flex-1 py-3 border-r border-slate-100">
-                  <p className="text-lg font-black font-inter text-slate-900">{user?.active_days || 1}</p>
-                  <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mt-1">Days Active</p>
-               </div>
-               <div className="flex-1 py-3">
-                  <p className="text-lg font-black font-inter text-brand-red">{user?.membership_status || 'Gold'}</p>
-                  <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mt-1">Status</p>
-               </div>
-            </section>
+
           </div>
 
           {/* RIGHT: Structured Options */}
