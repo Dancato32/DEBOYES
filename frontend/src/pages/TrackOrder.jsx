@@ -63,6 +63,11 @@ export default function TrackOrder() {
     return map[order.status] ?? -1
   }
 
+  const statusLevel = getStatusLevel()
+  const currentStatusDesc = statusSteps[statusLevel]?.desc || 'Updating status...'
+  const currentStatusLabel = statusSteps[statusLevel]?.label || 'Tracking Order'
+  const showMap = order?.status === 'on_the_way' || order?.status === 'delivered'
+
   const getStatusDisplay = (stepIndex) => {
     if (stepIndex < statusLevel) return { label: 'Done', color: 'text-brand-red' }
     if (stepIndex === statusLevel) return { label: 'Now', color: 'text-brand-red font-black' }
