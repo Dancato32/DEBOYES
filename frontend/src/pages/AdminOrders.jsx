@@ -11,6 +11,7 @@ export default function AdminOrdersPage() {
     return localStorage.getItem('adminOrderFilter') || 'All'
   })
   const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
   const [notificationSound] = useState(new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'))
 
   const loadOrders = async () => {
@@ -72,104 +73,169 @@ export default function AdminOrdersPage() {
     loadOrders()
   }, [activeFilter])
 
+  const filteredOrders = orders.filter(o => 
+    o.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    o.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    o.items.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    o.area.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
   return (
-    <div className="space-y-8 py-6 max-w-7xl mx-auto px-4 sm:px-6">
-      <header className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900 tracking-tight font-inter">Orders History</h1>
-          <p className="mt-1 text-slate-500 text-sm">Total {orders.length} orders found</p>
+    <div className="space-y-6 max-w-[100vw] overflow-x-hidden">
+      <header className="flex flex-col gap-6 lg:flex-row lg:items-end justify-between bg-white p-6 lg:p-10 border-b border-slate-200">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight font-outfit">Orders Logistics</h1>
+          <p className="text-slate-500 text-sm font-medium uppercase tracking-widest">Global fulfillment command center</p>
         </div>
-        <div className="flex gap-2 p-1 rounded-lg bg-slate-100 overflow-x-auto no-scrollbar border border-slate-200">
-          {statusFilters.map((f) => (
-            <button
-              key={f}
-              onClick={() => setActiveFilter(f)}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-all whitespace-nowrap ${
-                activeFilter === f ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
-              }`}
-            >
-              {f}
-            </button>
-          ))}
+
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative">
+            <input 
+              type="text"
+              placeholder="Search ID, customer, items..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2.5 bg-slate-50 border-slate-200 rounded-xl text-sm w-full sm:w-64 focus:bg-white transition-all font-medium"
+            />
+            <svg className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          </div>
+          
+          <div className="flex gap-1.5 p-1 rounded-xl bg-slate-100 border border-slate-200 overflow-x-auto no-scrollbar">
+            {statusFilters.map((f) => (
+              <button
+                key={f}
+                onClick={() => setActiveFilter(f)}
+                className={`rounded-lg px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+                  activeFilter === f ? 'bg-white text-brand-red shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
         </div>
       </header>
 
-      <section className="rounded-lg bg-white border border-slate-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm whitespace-nowrap">
-            <thead className="bg-slate-50 border-b border-slate-200">
+      {/* Main Table Interface - No rounded corners, full width approach */}
+      <div className="bg-white border-y border-slate-200">
+        <div className="overflow-x-auto no-scrollbar">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-slate-50/50 border-b border-slate-200">
               <tr>
-                <th className="px-6 py-3 font-semibold text-slate-900">Order ID</th>
-                <th className="px-6 py-3 font-semibold text-slate-900">Date & Time</th>
-                <th className="px-6 py-3 font-semibold text-slate-900">Customer</th>
-                <th className="px-6 py-3 font-semibold text-slate-900">Rider</th>
-                <th className="px-6 py-3 font-semibold text-slate-900">Items</th>
-                <th className="px-6 py-3 font-semibold text-slate-900">Price</th>
-                <th className="px-6 py-3 font-semibold text-slate-900 text-center">Status</th>
-                <th className="px-6 py-3 font-semibold text-slate-900 text-right">Action</th>
+                <th className="px-6 py-5 font-black text-[10px] uppercase tracking-[0.2em] text-slate-400">Order</th>
+                <th className="px-6 py-5 font-black text-[10px] uppercase tracking-[0.2em] text-slate-400">Customer Details</th>
+                <th className="px-6 py-5 font-black text-[10px] uppercase tracking-[0.2em] text-slate-400">Logistics</th>
+                <th className="px-6 py-5 font-black text-[10px] uppercase tracking-[0.2em] text-slate-400">Items Ordered</th>
+                <th className="px-6 py-5 font-black text-[10px] uppercase tracking-[0.2em] text-slate-400">Payment</th>
+                <th className="px-6 py-5 font-black text-[10px] uppercase tracking-[0.2em] text-slate-400 text-center">Fulfillment</th>
+                <th className="px-6 py-5 font-black text-[10px] uppercase tracking-[0.2em] text-slate-400 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 bg-white">
+            <tbody className="divide-y divide-slate-100 bg-white">
               {loading ? (
-                 <tr><td colSpan="8" className="px-6 py-10 text-center text-slate-500">Loading orders...</td></tr>
-              ) : orders.map((order) => (
-                <tr key={order.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4 font-mono text-xs text-slate-500">{order.id}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-col">
-                      <span className="text-slate-900 font-medium">{order.date}</span>
-                      <span className="text-slate-500 text-xs">{order.time}</span>
+                 <tr><td colSpan="7" className="px-6 py-20 text-center text-slate-300 font-black uppercase tracking-widest animate-pulse">Synchronizing Data...</td></tr>
+              ) : filteredOrders.length === 0 ? (
+                <tr><td colSpan="7" className="px-6 py-20 text-center text-slate-400 font-medium italic">No matching orders found in the system.</td></tr>
+              ) : filteredOrders.map((order) => (
+                <tr key={order.id} className="hover:bg-slate-50/50 transition-colors group">
+                  <td className="px-6 py-6 align-top">
+                    <div className="font-mono text-[11px] font-black text-brand-red bg-brand-red/5 px-2 py-1 rounded inline-block mb-2">
+                      {order.id}
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-slate-900 font-bold text-xs">{order.date}</span>
+                      <span className="text-slate-400 text-[10px] font-black uppercase tracking-tighter">{order.time}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-slate-900 font-medium">{order.customer}</td>
-                  <td className="px-6 py-4 text-emerald-600 font-medium">{order.rider}</td>
-                  <td className="px-6 py-4 text-slate-500 max-w-[250px] truncate">{order.items}</td>
-                  <td className="px-6 py-4 font-medium text-slate-900">₵{order.total}</td>
-                  <td className="px-6 py-4 text-center">
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      order.status === 'Delivered'   ? 'bg-emerald-100 text-emerald-800' : 
-                      order.status === 'On The Way'  ? 'bg-blue-100 text-blue-800' :
-                      order.status === 'Ready'       ? 'bg-brand-red/10 text-brand-dark-red' :
-                      order.status === 'New'         ? 'bg-purple-100 text-purple-800' :
-                      order.status === 'Pending'     ? 'bg-orange-100 text-orange-800' :
-                      order.status === 'Assigned'    ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-slate-100 text-slate-800'
+                  
+                  <td className="px-6 py-6 align-top">
+                    <p className="text-sm font-black text-slate-900 font-outfit">{order.customer}</p>
+                    <div className="mt-3 flex flex-col gap-1.5">
+                      <div className="flex items-center gap-2">
+                         <span className="h-1.5 w-1.5 rounded-full bg-brand-red animate-pulse" />
+                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{order.rider}</span>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td className="px-6 py-6 align-top max-w-[200px]">
+                    <p className="text-xs font-bold text-slate-900 leading-relaxed whitespace-normal">{order.address}</p>
+                    <p className="mt-2 inline-block bg-slate-100 text-slate-500 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">
+                      {order.area}
+                    </p>
+                  </td>
+
+                  <td className="px-6 py-6 align-top">
+                    <div className="space-y-1 max-w-[300px]">
+                      {order.items.split(',').map((item, idx) => (
+                        <div key={idx} className="text-xs font-bold text-slate-600 flex items-start gap-2">
+                          <span className="text-brand-red shrink-0">•</span>
+                          <span className="whitespace-normal leading-tight">{item.trim()}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </td>
+
+                  <td className="px-6 py-6 align-top">
+                    <div className="space-y-2">
+                      <p className="text-sm font-black text-slate-900">₵{order.total}</p>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">{order.payment_method}</span>
+                        <span className={`text-[9px] font-black uppercase tracking-widest ${
+                          order.payment_status === 'Paid' ? 'text-emerald-500' : 'text-amber-500'
+                        }`}>{order.payment_status}</span>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td className="px-6 py-6 align-top text-center">
+                    <span className={`inline-flex items-center rounded-xl px-4 py-1.5 text-[9px] font-black uppercase tracking-[0.15em] shadow-sm ${
+                      order.status === 'Delivered'   ? 'bg-emerald-500 text-white' : 
+                      order.status === 'On The Way'  ? 'bg-blue-500 text-white' :
+                      order.status === 'Ready'       ? 'bg-brand-red text-white' :
+                      order.status === 'New'         ? 'bg-purple-500 text-white' :
+                      order.status === 'Pending'     ? 'bg-orange-500 text-white' :
+                      order.status === 'Assigned'    ? 'bg-yellow-400 text-slate-900' :
+                      'bg-slate-200 text-slate-600'
                     }`}>
                       {order.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right space-x-2">
-                    {order.status === 'New' && (
-                      <button 
-                        onClick={() => handleConfirm(order.id)}
-                        className="inline-flex items-center rounded-md border border-transparent bg-purple-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-                      >
-                        Confirm Order
-                      </button>
-                    )}
-                    {(order.status === 'Pending') && (
-                      <button 
-                        onClick={() => handleReady(order.id)}
-                        className="inline-flex items-center rounded-md border border-transparent bg-orange-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
-                      >
-                        Mark as Ready
-                      </button>
-                    )}
-                    {order.status === 'Assigned' && (
-                      <button 
-                        onClick={() => handlePickup(order.id)}
-                        className="inline-flex items-center rounded-md border border-transparent bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
-                      >
-                        Confirm Pickup
-                      </button>
-                    )}
+
+                  <td className="px-6 py-6 align-top text-right">
+                    <div className="flex flex-col sm:flex-row justify-end gap-2">
+                      {order.status === 'New' && (
+                        <button 
+                          onClick={() => handleConfirm(order.id)}
+                          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md active:scale-95 transition-all"
+                        >
+                          Confirm
+                        </button>
+                      )}
+                      {(order.status === 'Pending') && (
+                        <button 
+                          onClick={() => handleReady(order.id)}
+                          className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md active:scale-95 transition-all"
+                        >
+                          Mark Ready
+                        </button>
+                      )}
+                      {order.status === 'Assigned' && (
+                        <button 
+                          onClick={() => handlePickup(order.id)}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md active:scale-95 transition-all"
+                        >
+                          Picked Up
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </section>
+      </div>
     </div>
   )
 }

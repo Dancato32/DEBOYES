@@ -139,35 +139,41 @@ export default function AdminDashboard() {
             <h2 className="text-base font-semibold text-slate-900">Recent Orders</h2>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto no-scrollbar">
             <table className="w-full text-left text-sm whitespace-nowrap">
               <thead className="bg-slate-50">
                 <tr>
-                  <th className="px-6 py-3 font-semibold text-slate-900">Order ID</th>
-                  <th className="px-6 py-3 font-semibold text-slate-900">Date & Time</th>
-                  <th className="px-6 py-3 font-semibold text-slate-900">Customer</th>
-                  <th className="px-6 py-3 font-semibold text-slate-900">Rider</th>
-                  <th className="px-6 py-3 font-semibold text-slate-900 text-right">Total</th>
+                  <th className="px-6 py-4 font-black text-[10px] uppercase tracking-widest text-slate-400">Order</th>
+                  <th className="px-6 py-4 font-black text-[10px] uppercase tracking-widest text-slate-400">Customer</th>
+                  <th className="px-6 py-4 font-black text-[10px] uppercase tracking-widest text-slate-400">Items</th>
+                  <th className="px-6 py-4 font-black text-[10px] uppercase tracking-widest text-slate-400">Total</th>
+                  <th className="px-6 py-4 font-black text-[10px] uppercase tracking-widest text-slate-400 text-center">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 bg-white">
+              <tbody className="divide-y divide-slate-100 bg-white">
                 {orders.length === 0 ? (
                   <tr>
-                    <td colSpan="5" className="px-6 py-10 text-center text-slate-500">No orders found.</td>
+                    <td colSpan="5" className="px-6 py-10 text-center text-slate-500 font-medium italic">No orders found.</td>
                   </tr>
                 ) : (
                   orders.map((order) => (
-                    <tr key={order.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 font-mono text-xs text-slate-500">#{order.id}</td>
+                    <tr key={order.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-6 py-4">
-                        <div className="flex flex-col">
-                          <span className="text-slate-900 font-medium">{order.date}</span>
-                          <span className="text-slate-500 text-xs">{order.time}</span>
-                        </div>
+                        <div className="font-mono text-[10px] font-black text-brand-red mb-1">#{order.id}</div>
+                        <div className="text-[10px] text-slate-400 font-bold">{order.time}</div>
                       </td>
-                      <td className="px-6 py-4 text-slate-900 font-medium">{order.customer}</td>
-                      <td className="px-6 py-4 text-emerald-600 font-medium">{order.rider}</td>
-                      <td className="px-6 py-4 text-right font-medium text-slate-900">₵{order.total}</td>
+                      <td className="px-6 py-4 text-slate-900 font-black text-xs font-outfit">{order.customer}</td>
+                      <td className="px-6 py-4 text-slate-500 text-xs font-bold max-w-[300px] truncate">{order.items}</td>
+                      <td className="px-6 py-4 font-black text-slate-900">₵{order.total}</td>
+                      <td className="px-6 py-4 text-center">
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest ${
+                          order.status === 'Delivered'   ? 'bg-emerald-100 text-emerald-800' : 
+                          order.status === 'New'         ? 'bg-purple-100 text-purple-800' :
+                          'bg-slate-100 text-slate-800'
+                        }`}>
+                          {order.status}
+                        </span>
+                      </td>
                     </tr>
                   ))
                 )}
