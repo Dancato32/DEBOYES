@@ -35,4 +35,5 @@ urlpatterns = [
     # Store Compliance & Notifications
     path('delete/', views.delete_account, name='delete_account'),
     path('fcm-token/', views.update_fcm_token, name='update_fcm_token'),
+    path('location/', views.update_location, name='update_location'),
 ]

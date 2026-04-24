@@ -15,7 +15,7 @@ export default function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState('pay_in_person') // 'pay_on_app', 'pay_in_person'
   const [locating, setLocating] = useState(false)
   const [coords, setCoords] = useState(null)
-  const [showMap, setShowMap] = useState(false)
+  const [isEditingAddress, setIsEditingAddress] = useState(false)
 
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
@@ -173,26 +173,50 @@ export default function Checkout() {
               </button>
             </div>
 
-            <div className="space-y-6">
-               <div className="space-y-2">
-                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Street Address</label>
-                 <input 
-                    value={address}
-                    onChange={e => setAddress(e.target.value)}
-                    placeholder="e.g. 12th Floor, Trade Tower"
-                    className="w-full bg-slate-50/50 border-white focus:bg-white text-slate-900 font-bold"
-                 />
-               </div>
-               <div className="space-y-2">
-                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Neighbourhood</label>
-                 <input 
-                    value={area}
-                    onChange={e => setArea(e.target.value)}
-                    placeholder="e.g. East Legon"
-                    className="w-full bg-slate-50/50 border-white focus:bg-white text-slate-900 font-bold"
-                 />
-               </div>
-            </div>
+            {!isEditingAddress && address ? (
+              <div className="space-y-4">
+                <div className="bg-slate-50/80 border border-slate-100 rounded-2xl p-5">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-brand-red/60 mb-2">Deliver to</p>
+                  <p className="text-[15px] font-bold text-slate-900 leading-tight">{address}</p>
+                  {area && <p className="text-sm text-slate-500 mt-1">{area}</p>}
+                </div>
+                <button 
+                  onClick={() => setIsEditingAddress(true)}
+                  className="w-full py-4 text-[11px] font-black uppercase tracking-widest text-slate-500 border-2 border-dashed border-slate-200 rounded-xl hover:text-brand-red hover:border-brand-red transition-all"
+                >
+                  Edit or Change Address
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                 <div className="space-y-2">
+                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Street Address</label>
+                   <input 
+                      value={address}
+                      onChange={e => setAddress(e.target.value)}
+                      placeholder="e.g. 12th Floor, Trade Tower"
+                      className="w-full bg-slate-50/50 border-white focus:bg-white text-slate-900 font-bold"
+                   />
+                 </div>
+                 <div className="space-y-2">
+                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Neighbourhood</label>
+                   <input 
+                      value={area}
+                      onChange={e => setArea(e.target.value)}
+                      placeholder="e.g. East Legon"
+                      className="w-full bg-slate-50/50 border-white focus:bg-white text-slate-900 font-bold"
+                   />
+                 </div>
+                 {address && (
+                   <button 
+                     onClick={() => setIsEditingAddress(false)}
+                     className="w-full py-4 bg-slate-900 text-white rounded-xl text-[11px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all"
+                   >
+                     Done Editing
+                   </button>
+                 )}
+              </div>
+            )}
           </div>
         </section>
 

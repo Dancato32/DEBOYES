@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-
+import { updateUserLocation } from '../services/api'
 /**
  * LocationRequest — shown once on app open.
  * On grant: saves { lat, lng, address, area } to localStorage under 'saved_location'.
@@ -54,6 +54,11 @@ export default function LocationRequest() {
         // Save everything to localStorage — Checkout will read this
         localStorage.setItem('saved_location', JSON.stringify({ lat, lng, address, area }))
 
+        // Send to backend (fails silently if unauthenticated)
+        try {
+          await updateUserLocation({ lat, lng })
+        } catch (e) {}
+
         setStatus('granted')
         setTimeout(() => setShow(false), 800)
       },
@@ -104,12 +109,12 @@ export default function LocationRequest() {
             <div className="p-8 text-center space-y-6">
               <div className="space-y-3">
                 <h2 className="text-2xl font-black text-slate-900 tracking-tight font-outfit">
-                  {status === 'granted' ? 'Location Saved! ✓' : 'Enable Location'}
+                  {status === 'granted' ? 'Location Saved! ✓' : 'For a better experience, enable location'}
                 </h2>
                 <p className="text-[13px] font-medium text-slate-400 leading-relaxed max-w-[280px] mx-auto">
                   {status === 'denied'
                     ? 'Location access was denied. You can manually enter your address at checkout.'
-                    : "We\u0027ll use your location to auto-fill your delivery address and give you an accurate fee estimate instantly."}
+                    : "We'll use your location to auto-fill your delivery address and give you an accurate fee estimate instantly."}
                 </p>
               </div>
 
@@ -137,7 +142,7 @@ export default function LocationRequest() {
                         <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
                         Detecting Location...
                       </span>
-                    ) : 'Allow Location Access'}
+                    ) : 'Turn on'}
                   </button>
                 )}
                 {status !== 'granted' && (
@@ -145,7 +150,7 @@ export default function LocationRequest() {
                     onClick={handleDismiss}
                     className="w-full py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-slate-600 transition-colors"
                   >
-                    Not Now
+                    No thanks
                   </button>
                 )}
               </div>

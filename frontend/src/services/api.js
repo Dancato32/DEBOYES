@@ -18,12 +18,27 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+import { toast } from '../utils/soundToast'
+
 // Error handling interceptor
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Check if it's a network error (no response received)
+    if (!error.response) {
+      console.warn('Network Error detected:', error.config?.url)
+      // Avoid spamming toasts for silent background checks like auth/me
+      if (!error.config?.url?.includes('auth/me')) {
+        toast.error('Network Error: Please check your internet connection.')
+      }
+      return Promise.reject(error)
+    }
+
     const message = error.response?.data?.error || error.response?.data?.detail || 'An unexpected error occurred'
-    console.error('API Error:', message)
+    // Avoid spamming console errors for expected 401s
+    if (error.response.status !== 401) {
+      console.error('API Error:', message)
+    }
     return Promise.reject(error)
   }
 )
@@ -36,6 +51,7 @@ export const authLogout = () => api.post('auth/logout/')
 export const getCurrentUser = () => api.get('auth/me/')
 export const deleteAccount = () => api.post('auth/delete/')
 export const updateFCMToken = (token) => api.post('auth/fcm-token/', { token })
+export const updateUserLocation = (payload) => api.post('auth/location/', payload)
 
 // Menu & Orders
 export const fetchMenu = () => api.get('menu/')

@@ -246,3 +246,22 @@ def update_fcm_token(request):
         return JsonResponse({"error": "Token required"}, status=400)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
+
+@csrf_exempt
+@token_required
+def update_location(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        lat = data.get('lat')
+        lng = data.get('lng')
+        if lat is not None and lng is not None:
+            request.user.last_lat = float(lat)
+            request.user.last_lng = float(lng)
+            request.user.save()
+            return JsonResponse({"status": "success", "message": "Location saved"})
+        return JsonResponse({"error": "Coordinates required"}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)

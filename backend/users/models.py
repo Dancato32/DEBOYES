@@ -21,6 +21,10 @@ class User(AbstractUser):
     batch_open = models.BooleanField(default=False)
     max_batch_size = models.PositiveIntegerField(default=3)
 
+    # Saved Location System
+    last_lat = models.FloatField(null=True, blank=True)
+    last_lng = models.FloatField(null=True, blank=True)
+
     def is_customer(self):
         return self.user_type == 'customer'
 
