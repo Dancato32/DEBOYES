@@ -79,9 +79,9 @@ export default function App() {
     <div className={`min-h-screen flex overflow-hidden ${isAdminPath ? 'bg-brand-cream text-brand-deep-dark font-inter' : ''}`}>
       {isAdminPath && <AdminSidebar />}
       
-      <div className={`flex-1 flex flex-col h-screen overflow-hidden ${isAdminPath ? 'bg-brand-cream' : ''}`}>
+      <div className={`flex-1 flex flex-col h-screen overflow-hidden ${isAdminPath ? 'bg-brand-cream pt-14 lg:pt-0' : ''}`}>
         {!hideNavbar && <Navbar />}
-        <main className={`flex-1 overflow-y-auto ${isAdminPath ? 'no-scrollbar p-10' : (!isMobileLayoutPath ? 'px-4 py-6 sm:px-6 lg:px-8' : '')}`}>
+        <main className={`flex-1 overflow-y-auto ${isAdminPath ? 'no-scrollbar p-4 sm:p-6 lg:p-10' : (!isMobileLayoutPath ? 'px-4 py-6 sm:px-6 lg:px-8' : '')}`}>
           <Routes>
             <Route path="/" element={<Onboarding />} />
             <Route path="/auth" element={<Auth />} />

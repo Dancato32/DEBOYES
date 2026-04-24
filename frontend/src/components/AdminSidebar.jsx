@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
@@ -64,9 +65,10 @@ const navGroups = [
 export default function AdminSidebar() {
   const location = useLocation()
   const { logout } = useAuth()
+  const [mobileOpen, setMobileOpen] = useState(false)
 
-  return (
-    <div className="flex w-64 flex-col border-r border-brand-dark-red bg-brand-red p-6 text-brand-cream/80 shadow-2xl relative z-20">
+  const sidebarContent = (
+    <>
       <div className="flex items-center gap-3 px-2">
         <div className="bg-white rounded-full p-1 shadow-md">
           <img src="/logo.png" alt="De Boye's Logo" className="h-[40px] w-auto object-contain" />
@@ -87,6 +89,7 @@ export default function AdminSidebar() {
                   <Link
                     key={item.id}
                     to={item.path}
+                    onClick={() => setMobileOpen(false)}
                     className={`flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-semibold font-inter transition-all ${
                       isActive 
                         ? 'bg-brand-dark-red text-brand-gold ring-1 ring-brand-gold/30 shadow-[0_0_15px_rgba(245,181,10,0.1)]' 
@@ -112,6 +115,54 @@ export default function AdminSidebar() {
         </span>
         Sign out
       </button>
-    </div>
+    </>
+  )
+
+  return (
+    <>
+      {/* Mobile top bar — only visible on small screens */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-[60] bg-brand-red px-4 py-3 flex items-center justify-between shadow-lg">
+        <div className="flex items-center gap-3">
+          <div className="bg-white rounded-full p-0.5 shadow-md">
+            <img src="/logo.png" alt="Logo" className="h-8 w-auto object-contain" />
+          </div>
+          <span className="text-[10px] font-bold text-white tracking-[0.25em] uppercase">Admin</span>
+        </div>
+        <button
+          onClick={() => setMobileOpen(!mobileOpen)}
+          className="h-10 w-10 rounded-xl bg-white/15 flex items-center justify-center text-white active:scale-90 transition-all"
+        >
+          {mobileOpen ? (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          ) : (
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+          )}
+        </button>
+      </div>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-[70] bg-black/40 backdrop-blur-sm"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Mobile slide-out drawer */}
+      <div className={`lg:hidden fixed top-0 left-0 bottom-0 z-[80] w-72 bg-brand-red p-6 text-brand-cream/80 flex flex-col shadow-2xl transform transition-transform duration-300 ${
+        mobileOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        {sidebarContent}
+      </div>
+
+      {/* Desktop sidebar — always visible on lg+ */}
+      <div className="hidden lg:flex w-64 flex-col border-r border-brand-dark-red bg-brand-red p-6 text-brand-cream/80 shadow-2xl relative z-20">
+        {sidebarContent}
+      </div>
+    </>
   )
 }
