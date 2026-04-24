@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { fetchOrderDetails } from '../services/api'
+import { fetchOrderDetails, cancelOrder } from '../services/api'
 import useOrderTracking from '../hooks/useOrderTracking'
 import MapTracker from '../components/MapTracker'
 import BottomNav from '../components/BottomNav'
@@ -16,6 +16,8 @@ export default function TrackOrder() {
   const [loading, setLoading] = useState(true)
   const [showChat, setShowChat] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
+  const [showCancelModal, setShowCancelModal] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
   const { position, connected, incomingMessage } = useOrderTracking(orderId)
 
   // Track incoming WebSocket messages
@@ -99,6 +101,22 @@ export default function TrackOrder() {
   )
 
   const canContactRider = order?.status === 'on_the_way' || order?.status === 'delivered'
+  const canCancelOrder = order?.status === 'new' || order?.status === 'pending'
+
+  const handleCancel = async () => {
+    setCancelling(true)
+    try {
+      await cancelOrder(orderId)
+      toast.success('Order cancelled successfully')
+      setShowCancelModal(false)
+      navigate('/history')
+    } catch (err) {
+      const msg = err.response?.data?.error || 'Could not cancel order'
+      toast.error(msg)
+    } finally {
+      setCancelling(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-brand-cream font-inter text-slate-800 pb-24 relative overflow-hidden">
@@ -249,16 +267,48 @@ export default function TrackOrder() {
            </div>
         </div>
 
-        {/* MAP TOGGLE BUTTON */}
-        {showMap && (
-           <button 
-              onClick={() => navigate(`/map-track/${orderId}`)} 
-              className="w-full py-5.5 bg-brand-charcoal text-brand-yellow rounded-3xl text-[11px] font-black uppercase tracking-[0.5em] shadow-2xl active:scale-95 transition-all mt-4"
-           >
-              Open Live Tracking Map
-           </button>
+        {/* CANCEL ORDER */}
+        {canCancelOrder && (
+          <button
+            onClick={() => setShowCancelModal(true)}
+            className="w-full py-4 rounded-3xl border-2 border-red-200 bg-red-50/60 text-brand-red text-[11px] font-black uppercase tracking-[0.4em] transition-all hover:bg-red-100 active:scale-[0.97]"
+          >
+            Cancel Order
+          </button>
         )}
       </div>
+
+      {/* CANCEL CONFIRMATION MODAL */}
+      {showCancelModal && (
+        <div className="fixed inset-0 z-[200] flex items-end justify-center bg-slate-900/50 backdrop-blur-sm px-4 pb-8">
+          <div className="w-full max-w-sm bg-brand-cream rounded-[2.5rem] p-8 space-y-6 shadow-2xl">
+            <div className="text-center space-y-3">
+              <div className="h-16 w-16 rounded-full bg-red-50 flex items-center justify-center mx-auto">
+                <svg className="w-8 h-8 text-brand-red" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+              </div>
+              <h2 className="text-xl font-black text-slate-900 tracking-tight">Cancel this order?</h2>
+              <p className="text-[13px] font-medium text-slate-400 leading-relaxed">
+                This cannot be undone. Your order will be cancelled and the kitchen will be notified.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowCancelModal(false)}
+                className="flex-1 py-4 rounded-2xl bg-white border border-slate-100 text-[11px] font-black uppercase tracking-widest text-slate-500"
+              >
+                Keep Order
+              </button>
+              <button
+                onClick={handleCancel}
+                disabled={cancelling}
+                className="flex-1 py-4 rounded-2xl bg-brand-red text-white text-[11px] font-black uppercase tracking-widest disabled:opacity-50 shadow-lg shadow-brand-red/20"
+              >
+                {cancelling ? 'Cancelling...' : 'Yes, Cancel'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <AnimatePresence>
         {showChat && (

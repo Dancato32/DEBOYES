@@ -51,6 +51,7 @@ export const fetchOrderMessages = (orderId) => api.get(`orders/${orderId}/messag
 export const sendOrderMessage = (orderId, payload) => api.post(`orders/${orderId}/messages/send/`, payload)
 export const markOrderMessagesRead = (orderId) => api.post(`orders/${orderId}/messages/read/`)
 export const verifyPayment = (reference) => api.get(`orders/verify-payment/${reference}/`)
+export const cancelOrder = (orderId) => api.post(`orders/cancel/${orderId}/`)
 
 // Super Orders / Batching
 export const fetchAvailableBatches = () => api.get('orders/batches/available/')
