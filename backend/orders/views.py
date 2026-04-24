@@ -169,36 +169,42 @@ def broadcast_customer_event(customer_id, event_type, data):
 def create_batch(order):
     """
     Automatically group ready orders into a Super Order (Batch).
-    Grouping criteria: Area and Proximity.
+    Grouping criteria: Area and Proximity. 
+    Constraint: Max 3 orders per batch.
     """
     with transaction.atomic():
-        # Look for an existing 'available' batch in the same area
-        batch = DeliveryBatch.objects.filter(
+        # Look for an existing 'available' batch in the same area that has < 3 orders
+        batch = DeliveryBatch.objects.annotate(order_count=Count('orders')).filter(
             status='available',
-            orders__area=order.area
+            orders__area=order.area,
+            order_count__lt=3
         ).distinct().first()
 
         if not batch:
             # Create a new Super Order
+            # 'window_expires_at' ensures it becomes available even if not full after 15 mins
             batch = DeliveryBatch.objects.create(
                 status='available',
                 total_payout=0,
-                estimated_time=25 # Base estimate
+                estimated_time=25,
+                window_expires_at=timezone.now() + timezone.timedelta(minutes=15)
             )
         
         # Add order to batch
         order.batch = batch
-        # Calculate stop number
-        current_stops = batch.orders.count()
-        order.stop_number = current_stops + 1
         order.save()
         
-        # Recalculate batch totals
-        total_payout = sum(o.total_price for o in batch.orders.all())
+        # Recalculate batch totals (Payout = Sum of delivery fees)
+        orders_in_batch = list(batch.orders.all())
+        total_payout = sum(o.delivery_fee for o in orders_in_batch)
         batch.total_payout = total_payout
+        
         # Add time per stop
-        batch.estimated_time = 25 + (batch.orders.count() * 10)
+        batch.estimated_time = 20 + (len(orders_in_batch) * 8)
         batch.save()
+        
+        # Sort the route automatically
+        services.optimize_delivery_route(batch)
 
     # Notify riders about the updated/new Super Order
     broadcast_rider_event("NEW_BATCH", {
@@ -543,7 +549,14 @@ def get_available_batches(request):
     if not request.user.is_rider():
         return JsonResponse({"error": "Only riders allowed"}, status=403)
     
-    batches = DeliveryBatch.objects.filter(status='available').prefetch_related('orders').order_by('-created_at')
+    # Only show batches that have 3 orders OR have been waiting longer than 15 mins (window expired)
+    batches = DeliveryBatch.objects.annotate(order_count=Count('orders')).filter(
+        status='available',
+        order_count__gt=0
+    ).filter(
+        Q(order_count=3) | Q(window_expires_at__lte=timezone.now())
+    ).prefetch_related('orders').order_by('-created_at')
+
     data = []
     for b in batches:
         data.append({
