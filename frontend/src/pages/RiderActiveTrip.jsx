@@ -54,7 +54,11 @@ export default function RiderActiveTrip() {
   
   const currentStop = activeBatch?.orders?.[0]
   const isWaitingForPickup = currentStop?.status === 'assigned'
-  const destCoords = currentStop ? (currentStop.lat ? { lat: currentStop.lat, lng: currentStop.lng } : getAreaCoords(currentStop.area)) : null
+  const customerCoords = currentStop ? (currentStop.lat ? { lat: currentStop.lat, lng: currentStop.lng } : getAreaCoords(currentStop.area)) : null
+  const restaurantCoords = currentStop ? { lat: currentStop.restaurant_lat, lng: currentStop.restaurant_lng } : null
+  
+  // Destination depends on whether we are picking up or delivering
+  const activeDestination = isWaitingForPickup ? restaurantCoords : customerCoords
 
   const loadData = async () => {
     try {
@@ -187,7 +191,7 @@ export default function RiderActiveTrip() {
       clearInterval(simulationInterval.current)
     }
     return () => clearInterval(simulationInterval.current)
-  }, [isSimulating, !!destCoords])
+  }, [isSimulating, !!activeDestination])
  
   // Sync simulated position to server
   useEffect(() => {
@@ -318,12 +322,13 @@ export default function RiderActiveTrip() {
         {/* LIVE MAP */}
         <section className={`rounded-[2.5rem] bg-white overflow-hidden shadow-sm relative transition-all duration-1000 ease-in-out border border-[#F0E8D8] ${isWaitingForPickup ? 'h-[320px]' : 'h-[60vh] min-h-[480px]'}`}>
            {riderPos && (
-             <MapTracker
-               position={riderPos}
-               destination={destCoords}
-               restaurant={{ lat: currentStop?.restaurant_lat, lng: currentStop?.restaurant_lng }}
-               darkMode={false}
-             />
+              <MapTracker
+                position={riderPos}
+                destination={activeDestination}
+                restaurant={restaurantCoords}
+                isRiderMoving={true}
+                darkMode={false}
+              />
            )}
 
            {/* Overlay controls on top of map */}
@@ -363,7 +368,7 @@ export default function RiderActiveTrip() {
                  </div>
               </div>
               <button
-                onClick={() => handleOpenMaps(currentStop.address, destCoords)}
+                onClick={() => handleOpenMaps(isWaitingForPickup ? "Restaurant" : currentStop.address, activeDestination)}
                 className="rounded-2xl bg-brand-red px-8 py-3 text-[10px] font-bold text-white uppercase tracking-widest shadow-xl shadow-brand-red/20 hover:bg-brand-dark-red transition-all active:scale-95 font-inter"
               >
                 Navigate ↗
