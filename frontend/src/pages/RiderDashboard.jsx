@@ -17,13 +17,10 @@ export default function RiderDashboard() {
   })
   const [batches, setBatches] = useState([])
   const [loading, setLoading] = useState(true)
-  
-  // Real-time tracking hook
+
   const { location, area, error: lError } = useRiderLocation(stats.is_available)
   const { sendLocation } = useRiderSocket((data) => {
-    if (data.event === 'NEW_BATCH') {
-      loadData()
-    }
+    if (data.event === 'NEW_BATCH') loadData()
   }, stats.is_available)
 
   const loadData = async () => {
@@ -41,7 +38,6 @@ export default function RiderDashboard() {
     }
   }
 
-  // Broadcast location when it changes
   useEffect(() => {
     if (location && stats.is_available && sendLocation) {
       sendLocation(location.lat, location.lng)
@@ -57,12 +53,7 @@ export default function RiderDashboard() {
   const handleToggleActive = async () => {
     try {
       const newStatus = !stats.is_available
-      
-      // If turning ON, show a toast about location
-      if (newStatus) {
-        toast.info('Activating live logistics tracking...')
-      }
-
+      if (newStatus) toast.info('Activating live logistics tracking...')
       await toggleAvailability({ is_available: newStatus })
       setStats(prev => ({ ...prev, is_available: newStatus }))
       toast.success(newStatus ? 'You are now LIVE' : 'Logged Off')
@@ -72,191 +63,186 @@ export default function RiderDashboard() {
   }
 
   if (loading && !stats) return (
-    <div className="min-h-screen bg-brand-cream flex items-center justify-center p-10">
-      <div className="h-14 w-14 rounded-full border-4 border-brand-red border-t-transparent animate-spin" />
+    <div className="min-h-screen bg-brand-cream flex items-center justify-center">
+      <div className="h-12 w-12 rounded-full border-4 border-brand-red border-t-transparent animate-spin" />
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-brand-cream font-inter text-slate-800 overflow-x-hidden uppercase-none leading-relaxed">
-      
-      {/* BRAND HEADER SECTION */}
-      <section className="px-6 pt-12 pb-20 relative overflow-hidden bg-brand-red shadow-lg">
-        {/* Logo Watermark Background */}
-        <div className="absolute inset-0 z-0 flex items-center justify-center opacity-[0.15] pointer-events-none scale-150 transform rotate-45 translate-x-32 translate-y-10">
-           <img src="/logo.png" alt="" className="w-full h-auto object-contain" />
-        </div>
-        {/* Abstract Background Illustration - Premium Scooter */}
-        <div className="absolute -right-4 top-10 opacity-60 pointer-events-none transform translate-x-4 select-none">
-           <svg width="320" height="320" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-             <defs>
-               <linearGradient id="bodyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                 <stop offset="0%" stopColor="#FF4D4D" />
-                 <stop offset="100%" stopColor="#D31212" />
-               </linearGradient>
-               <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                 <stop offset="0%" stopColor="#FF6B6B" />
-                 <stop offset="100%" stopColor="#B30000" />
-               </linearGradient>
-               <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-                 <feGaussianBlur in="SourceAlpha" stdDeviation="3" />
-                 <feOffset dx="2" dy="2" result="offsetblur" />
-                 <feComponentTransfer>
-                   <feFuncA type="linear" slope="0.3" />
-                 </feComponentTransfer>
-                 <feMerge>
-                   <feMergeNode />
-                   <feMergeNode in="SourceGraphic" />
-                 </feMerge>
-               </filter>
-             </defs>
-             {/* Rear Wheel Shadow */}
-             <circle cx="155" cy="155" r="22" fill="#000" fillOpacity="0.1" />
-             {/* Front Wheel Shadow */}
-             <circle cx="45" cy="155" r="22" fill="#000" fillOpacity="0.1" />
-             
-             {/* Rear Wheel */}
-             <circle cx="150" cy="150" r="22" fill="#2D2D2D" />
-             <circle cx="150" cy="150" r="14" fill="#4A4A4A" />
-             <circle cx="150" cy="150" r="6" fill="#888" />
-             
-             {/* Front Wheel */}
-             <circle cx="40" cy="150" r="22" fill="#2D2D2D" />
-             <circle cx="40" cy="150" r="14" fill="#4A4A4A" />
-             <circle cx="40" cy="150" r="6" fill="#888" />
-             
-             {/* Main Chassis Connect */}
-             <rect x="40" y="140" width="110" height="12" rx="6" fill="url(#bodyGradient)" />
-             
-             {/* Seat Base */}
-             <path d="M80 140h60l10-40H90l-10 40z" fill="#B30000" />
-             
-             {/* Seat Top */}
-             <path d="M75 105c0-10 10-15 30-15s45 5 45 15v10H75v-10z" fill="#2D2D2D" />
-             
-             {/* Front Shield / Body */}
-             <path d="M40 150l10-80c0-10 10-20 20-20h20l-10 100H40z" fill="url(#shieldGradient)" filter="url(#shadow)" />
-             
-             {/* Handlebars Column */}
-             <path d="M75 50l-5-25h10l5 25z" fill="#4A4A4A" />
-             <rect x="60" y="20" width="30" height="6" rx="3" fill="#2D2D2D" />
-             
-             {/* Headlight */}
-             <circle cx="70" cy="55" r="8" fill="#FFF9C4" filter="url(#shadow)" />
-             <circle cx="70" cy="55" r="4" fill="white" />
-             
-             {/* Delivery Box (Rear) */}
-             <rect x="120" y="60" width="45" height="45" rx="8" fill="url(#bodyGradient)" filter="url(#shadow)" />
-             <rect x="125" y="65" width="35" height="5" rx="2" fill="white" fillOpacity="0.2" />
-             
-             {/* Brand Logo Dot on Box */}
-             <circle cx="142" cy="82" r="8" fill="#C0111A" />
-             <path d="M138 82h8M142 78v8" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-           </svg>
+    <div className="min-h-screen bg-slate-50 pb-32 font-inter">
+
+      {/* ─── BRAND HERO HEADER ──────────────────────────────────── */}
+      <div className="bg-brand-red px-6 py-10 relative overflow-hidden shadow-2xl">
+        {/* Logo watermark */}
+        <div className="absolute -right-12 -top-12 opacity-[0.25] pointer-events-none rotate-12">
+          <img src="/logo.png" alt="" className="h-96 w-96 object-contain brightness-0 invert" />
         </div>
 
-        <div className="relative z-10 space-y-12">
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
-               <p className="text-[9px] font-bold uppercase tracking-widest text-white/70 font-inter">Live Location <span className="text-brand-red ml-1">●</span></p>
-               <div className="flex items-center gap-2">
-                 <div className="h-2.5 w-2.5 rounded-full bg-brand-red shadow-[0_0_12px_rgba(192,17,26,0.8)] animate-pulse" />
-                 <p className="text-base font-bold text-white font-poppins tracking-tight">
-                   {lError ? 'GPS Required' : area}
-                 </p>
-               </div>
+        <div className="relative z-10">
+          {/* Top bar */}
+          <header className="flex items-center justify-between mb-10">
+            <div className="flex items-center gap-3">
+              <div className="h-11 w-11 flex items-center justify-center rounded-xl bg-white/15 text-brand-yellow backdrop-blur-xl border border-white/10">
+                {/* Location pin icon */}
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path fillRule="evenodd" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">Live Location</span>
+                <span className="font-bold text-white text-sm truncate max-w-[180px]">
+                  {lError ? 'GPS Required' : (area || 'Detecting...')}
+                </span>
+              </div>
             </div>
-            {/* Availability Toggle */}
-            <button 
+
+            {/* Availability toggle */}
+            <button
               onClick={handleToggleActive}
-              className={`h-8 w-14 rounded-full p-1.5 transition-all duration-500 shadow-inner ${stats.is_available ? 'bg-brand-red' : 'bg-white/20'}`}
+              className={`h-9 w-16 rounded-full p-1.5 transition-all duration-500 relative ${
+                stats.is_available ? 'bg-brand-yellow' : 'bg-white/20'
+              }`}
             >
-               <div className={`h-5 w-5 rounded-full bg-white shadow-md transition-all duration-300 transform ${stats.is_available ? 'translate-x-6' : 'translate-x-0'}`} />
+              <div className={`h-6 w-6 rounded-full shadow-md transition-all duration-400 transform ${
+                stats.is_available ? 'translate-x-7 bg-brand-red' : 'translate-x-0 bg-white'
+              }`} />
             </button>
-          </div>
+          </header>
 
-          <div className="space-y-2">
-             <div className="flex items-center gap-3">
-               <div className="h-4 w-[2px] bg-brand-red opacity-80" />
-               <p className="text-xs text-white font-medium uppercase tracking-widest font-inter">Status: <span className="text-white font-bold">{stats.is_available ? 'Active & Tracking' : 'Offline'}</span></p>
-             </div>
-             <div>
-               <p className="text-[10px] font-bold text-white/70 uppercase tracking-widest font-inter">Today's Earnings</p>
-               <div className="flex items-baseline gap-1">
-                 <h2 className="text-6xl font-bold text-brand-red tracking-tighter drop-shadow-sm font-poppins">₵{stats.today_earnings?.toFixed(2)}</h2>
-               </div>
-               <p className="text-2xl font-bold text-white mt-1 font-poppins tracking-tight italic opacity-90">{user?.name || 'Alexander C.'}</p>
-             </div>
+          {/* Hero content */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 mb-1">
+              <div className={`h-2 w-2 rounded-full ${stats.is_available ? 'bg-brand-yellow animate-pulse' : 'bg-white/30'}`} />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60">
+                {stats.is_available ? 'Active & Tracking' : 'Offline'}
+              </span>
+            </div>
+            <h1 className="text-4xl font-black text-brand-yellow tracking-tighter italic uppercase leading-[0.95]">
+              Today's<br />Earnings
+            </h1>
+            <div className="flex items-baseline gap-2">
+              <span className="text-5xl font-black text-white tracking-tighter">
+                ₵{Number(stats.today_earnings || 0).toFixed(2)}
+              </span>
+            </div>
+            <p className="text-white/70 text-xs font-bold uppercase tracking-[0.15em]">
+              {stats.total_deliveries} deliveries · {stats.rating} ★ rating
+            </p>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* JOBS SECTION (CREAM CONTAINER) */}
-      <section className="bg-brand-cream rounded-t-[3.5rem] -mt-8 min-h-[60vh] px-6 pt-12 pb-32 relative z-20 shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
-        <div className="flex items-center justify-between mb-10">
-           <h3 className="text-xl font-bold text-slate-800 tracking-tight font-poppins italic uppercase">New Job Opportunities</h3>
-           <Link to="/rider/alerts" className="text-[9px] font-bold text-brand-red uppercase tracking-widest border-b-2 border-brand-red/10 pb-1 font-inter">See More</Link>
+      {/* ─── CREAM CONTENT AREA ─────────────────────────────────── */}
+      <div className="bg-brand-cream rounded-t-[3.5rem] -mt-6 min-h-[60vh] px-6 pt-10 pb-32 relative z-10">
+
+        {/* Quick stats row — seamless */}
+        <div className="flex items-center justify-between px-2 mb-10">
+          <div className="text-center">
+            <p className="text-2xl font-black text-slate-900 tracking-tighter">{stats.total_deliveries}</p>
+            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mt-1">Deliveries</p>
+          </div>
+          <div className="h-8 w-px bg-slate-200/60" />
+          <div className="text-center">
+            <p className="text-2xl font-black text-brand-red tracking-tighter">{stats.rating || '4.9'}</p>
+            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mt-1">Rating</p>
+          </div>
+          <div className="h-8 w-px bg-slate-200/60" />
+          <div className="text-center">
+            <p className={`text-2xl font-black tracking-tighter ${stats.is_available ? 'text-emerald-500' : 'text-slate-300'}`}>
+              {stats.is_available ? 'ON' : 'OFF'}
+            </p>
+            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mt-1">Status</p>
+          </div>
         </div>
 
-        <div className="space-y-6">
-           {batches.length === 0 ? (
-             <div className="py-24 text-center">
-               <div className="mx-auto w-20 h-20 bg-brand-cream border border-slate-100 rounded-full flex items-center justify-center mb-6 opacity-40">
-                 <svg className="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.14 0M1.414 8.414c5.858-5.857 15.356-5.857 21.213 0" />
-                 </svg>
-               </div>
-               <p className="text-[11px] font-black text-slate-300 uppercase tracking-[0.25em] italic">Waiting for updates...</p>
-             </div>
-           ) : (
-             batches.map((batch) => (
-               <div key={batch.id} className="bg-white border border-[#F0E8D8] rounded-[2.5rem] p-5 shadow-sm space-y-6 hover:shadow-md transition-shadow">
-                 <div className="flex items-center gap-4">
-                    <div className="h-16 w-16 rounded-[2rem] bg-brand-cream flex items-center justify-center text-3xl shadow-inner border border-[#F0E8D8]">
+        {/* Section heading */}
+        <div className="flex items-center justify-between mb-8 px-1">
+          <h3 className="text-xl font-black text-slate-900 tracking-tight italic uppercase">
+            Job Opportunities
+          </h3>
+          <Link
+            to="/rider/alerts"
+            className="text-[10px] font-black text-brand-red uppercase tracking-widest border-b-2 border-brand-red/20 pb-0.5"
+          >
+            See All
+          </Link>
+        </div>
+
+        {/* ─── JOBS LIST — no cards ──────────────────────────────── */}
+        {batches.length === 0 ? (
+          <div className="py-24 text-center space-y-4">
+            <div className="mx-auto h-20 w-20 rounded-full bg-white/50 flex items-center justify-center opacity-40">
+              <svg className="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            </div>
+            <p className="text-[11px] font-black text-slate-300 uppercase tracking-[0.3em]">No jobs right now</p>
+            <p className="text-[10px] font-medium text-slate-300">New orders will appear here instantly</p>
+          </div>
+        ) : (
+          <div className="space-y-0 divide-y divide-slate-200/40">
+            {batches.map((batch, idx) => (
+              <div key={batch.id} className="py-7 space-y-5">
+                {/* Batch header row */}
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="h-14 w-14 rounded-2xl bg-white/60 flex items-center justify-center text-2xl border border-white/80 shadow-sm">
                       🍔
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                         <h4 className="text-base font-bold text-slate-800 font-poppins tracking-tight">{batch.store_name || "De Boye's Partner"}</h4>
-                         <div className="bg-brand-red px-3 py-1 rounded-xl text-[9px] font-bold text-white font-inter uppercase tracking-wider">2.6 KM</div>
-                      </div>
-                      <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest font-inter mt-0.5">{batch.area}</p>
+                    <div>
+                      <p className="text-[15px] font-black text-slate-900 leading-tight tracking-tight font-outfit">
+                        {batch.store_name || "De Boye's Kitchen"}
+                      </p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1.5">
+                        {batch.stops_count} stop{batch.stops_count !== 1 ? 's' : ''} · {batch.area || 'Accra'}
+                      </p>
                     </div>
-                 </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xl font-black text-brand-red tracking-tight font-outfit">₵{batch.total_payout}</p>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mt-1">Payout</p>
+                  </div>
+                </div>
 
-                 {/* Segment Divider */}
-                 <div className="border-t border-dashed border-[#F0E8D8]" />
+                {/* Meta row — seamless */}
+                <div className="flex items-center gap-6 px-1">
+                  <div className="flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-brand-red" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                      ~{batch.estimated_time || 25} min
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                      Batch #{batch.id}
+                    </span>
+                  </div>
+                </div>
 
-                 <div className="flex items-center justify-between bg-brand-cream/50 rounded-2xl p-4 border border-[#F0E8D8]">
-                    <div className="flex items-center gap-3">
-                       <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center text-xs shadow-sm border border-[#F0E8D8]">👤</div>
-                        <div>
-                          <p className="text-sm font-bold text-slate-800 font-inter">Super Order</p>
-                          <p className="text-[9px] font-medium text-slate-400 uppercase tracking-widest font-inter mt-1">Batch ID #{batch.id}</p>
-                        </div>
+                {/* Action row — seamless */}
+                <div className="flex items-center gap-3">
+                  <Link
+                    to={`/rider/batch/${batch.id}`}
+                    className="flex-1 h-14 bg-brand-red rounded-2xl flex items-center justify-between px-6 text-white active:scale-[0.97] transition-all shadow-lg shadow-brand-red/20 group relative overflow-hidden"
+                  >
+                    <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <span className="text-[11px] font-black uppercase tracking-[0.3em] relative z-10">Accept Job</span>
+                    <div className="h-7 w-7 rounded-full bg-brand-yellow flex items-center justify-center relative z-10 group-hover:scale-110 transition-transform">
+                      <svg className="w-4 h-4 text-brand-red" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
                     </div>
-                    <div className="bg-brand-red px-4 py-2 rounded-xl text-[9px] font-bold text-white uppercase tracking-widest shadow-sm font-inter">
-                       Earn ₵{batch.total_payout}
-                    </div>
-                 </div>
-
-                 <div className="flex gap-3">
-                    <Link 
-                      to={`/rider/batch/${batch.id}`}
-                      className="flex-1 bg-brand-red rounded-[1.5rem] py-4 flex items-center justify-center gap-4 text-white font-bold uppercase tracking-widest text-[10px] font-inter hover:bg-red-800 transition-all active:scale-95 shadow-lg shadow-brand-red/20"
-                    >
-                       <span>Accept Batch</span>
-                       <div className="h-6 w-6 rounded-full bg-white text-brand-red flex items-center justify-center text-[10px]">»</div>
-                    </Link>
-                    <button className="px-8 rounded-[1.5rem] bg-white border border-[#F0E8D8] text-slate-400 text-[10px] font-bold uppercase tracking-widest active:scale-95 hover:bg-slate-50 transition-colors font-inter">
-                       Skip
-                    </button>
-                 </div>
-               </div>
-             ))
-           )}
-        </div>
-      </section>
+                  </Link>
+                  <button className="h-14 px-6 rounded-2xl bg-white/60 border border-white text-[11px] font-black uppercase tracking-widest text-slate-400 active:scale-95 transition-all">
+                    Skip
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <BottomNav />
     </div>
