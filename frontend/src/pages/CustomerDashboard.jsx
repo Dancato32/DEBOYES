@@ -64,7 +64,7 @@ export default function CustomerDashboard() {
       {/* Premium Red Header Section */}
       <div className="bg-brand-red px-6 py-10 relative overflow-hidden shadow-2xl">
         {/* Background Logo Watermark - Larger and more centered for visibility */}
-        <div className="absolute -right-12 -top-12 opacity-[0.15] pointer-events-none rotate-12">
+        <div className="absolute -right-12 -top-12 opacity-[0.25] pointer-events-none rotate-12">
           <img src="/logo.png" alt="" className="h-96 w-96 object-contain brightness-0 invert" />
         </div>
         
