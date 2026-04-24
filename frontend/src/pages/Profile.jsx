@@ -65,20 +65,25 @@ export default function Profile() {
           {/* LEFT: Avatar + Stats */}
           <div className="lg:sticky lg:top-8 space-y-6">
             {/* Profile Header */}
-            <section className="flex flex-col items-center text-center space-y-4 bg-white rounded-lg p-6 border border-slate-200 shadow-sm">
-              <div className="relative">
-                 <div className="flex h-24 w-24 items-center justify-center rounded-lg text-3xl font-bold font-inter shadow-lg bg-brand-red text-white">
+            <section className="flex flex-col items-center text-center space-y-4 bg-brand-red rounded-lg p-6 shadow-lg relative overflow-hidden">
+              {/* Internal Watermark */}
+              <div className="absolute right-[-10px] top-[-10px] opacity-[0.1] pointer-events-none">
+                <img src="/logo.png" alt="" className="h-32 w-32 object-contain brightness-0 invert" />
+              </div>
+
+              <div className="relative z-10">
+                 <div className="flex h-24 w-24 items-center justify-center rounded-lg text-3xl font-bold font-inter shadow-lg bg-white text-brand-red">
                    {initials}
                  </div>
-                 <div className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded border-2 bg-white border-slate-100 text-brand-red shadow-sm">
+                 <div className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded border-2 bg-brand-red border-white/20 text-white shadow-sm">
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                     </svg>
                  </div>
               </div>
-              <div>
-                <h1 className="text-2xl font-bold font-inter text-slate-900 tracking-tight">{user?.username}</h1>
-                <p className="text-[10px] font-bold uppercase mt-1 font-inter text-slate-400 tracking-widest">{isRider ? 'Certified Rider' : 'Valued Customer'}</p>
+              <div className="relative z-10">
+                <h1 className="text-2xl font-bold font-inter text-white tracking-tight">{user?.username}</h1>
+                <p className="text-[10px] font-bold uppercase mt-1 font-inter text-white/70 tracking-widest">{isRider ? 'Certified Rider' : 'Valued Customer'}</p>
               </div>
             </section>
 
