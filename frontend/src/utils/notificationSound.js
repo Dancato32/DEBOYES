@@ -62,6 +62,33 @@ export function playNotificationSound(type = 'info') {
         oscillator.stop(now + 0.35)
         break
 
+      case 'ring':
+        // Loud, attention-grabbing chime (like a doorbell or register)
+        oscillator.type = 'sine'
+        const osc2 = ctx.createOscillator()
+        osc2.type = 'triangle'
+        
+        oscillator.connect(gainNode)
+        osc2.connect(gainNode)
+        
+        // Bell frequencies
+        oscillator.frequency.setValueAtTime(880, now)       // A5
+        oscillator.frequency.setValueAtTime(1046, now + 0.2) // C6
+        oscillator.frequency.setValueAtTime(1318, now + 0.4) // E6
+        
+        osc2.frequency.setValueAtTime(880, now)       
+        osc2.frequency.setValueAtTime(1046, now + 0.2)
+        osc2.frequency.setValueAtTime(1318, now + 0.4)
+
+        gainNode.gain.setValueAtTime(0.3, now)
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1.0)
+        
+        oscillator.start(now)
+        osc2.start(now)
+        oscillator.stop(now + 1.0)
+        osc2.stop(now + 1.0)
+        break
+
       case 'info':
       default:
         // Soft single ding

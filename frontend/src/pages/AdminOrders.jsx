@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { fetchAdminOrders, markOrderReady, confirmOrder, confirmPickup } from '../services/api'
 import useAdminSocket from '../hooks/useAdminSocket'
 import { toast } from '../utils/soundToast'
+import { playNotificationSound } from '../utils/notificationSound'
 
 const statusFilters = ['All', 'New', 'Pending', 'Assigned', 'Ready', 'On The Way', 'Delivered']
 
@@ -12,7 +13,6 @@ export default function AdminOrdersPage() {
   })
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [notificationSound] = useState(new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'))
 
   const loadOrders = async () => {
     setLoading(true)
@@ -28,7 +28,7 @@ export default function AdminOrdersPage() {
 
   useAdminSocket((update) => {
     if (update.event === 'ORDER_PLACED') {
-      notificationSound.play().catch(e => console.log('Audio playback blocked by browser'))
+      playNotificationSound('ring')
       loadOrders()
     } else if (update.event === 'ORDER_STATUS_UPDATED') {
       loadOrders()
