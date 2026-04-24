@@ -36,7 +36,12 @@ def calculate_delivery_fee(lat, lng, area_name):
     for z in zones:
         z_name = z.name.lower()
         if z_name in name_clean or name_clean in z_name:
-            return float(z.price), z.name
+            dist = z.km if hasattr(z, 'km') else 10.0 # Heuristic if km missing
+            return float(z.price), z.name, {
+                "distance_km": dist,
+                "eta_mins": max(15, round(dist * 5)),
+                "method": "table_lookup"
+            }
 
     # 2. GPS DISTANCE FORMULA (Haversine + Multiplier)
     if lat is not None and lng is not None:
@@ -64,9 +69,19 @@ def calculate_delivery_fee(lat, lng, area_name):
             # Ensure minimum fee of 15
             final_fee = max(15, final_fee)
             
-            return float(final_fee), f"~{round(adjusted_km)}km from Kitchen"
+            eta = max(15, round(adjusted_km * 5))
+            
+            return float(final_fee), f"~{round(adjusted_km)}km from Kitchen", {
+                "distance_km": round(adjusted_km, 1),
+                "eta_mins": eta,
+                "method": "haversine"
+            }
         except Exception as e:
             print(f"Fee Calculation Error: {e}")
 
     # FINAL FALLBACK (If no name match and no GPS)
-    return 30.0, "General Accra"
+    return 30.0, "General Accra", {
+        "distance_km": 15.0,
+        "eta_mins": 45,
+        "method": "fallback"
+    }

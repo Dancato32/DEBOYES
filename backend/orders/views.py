@@ -245,8 +245,15 @@ def get_delivery_fee(request):
         lng = data.get('lng')
         area = data.get('area', '')
         
-        fee, zone_name = calculate_delivery_fee(lat, lng, area)
-        return JsonResponse({"fee": fee, "zone": zone_name})
+        fee, zone_name, meta = calculate_delivery_fee(lat, lng, area)
+        return JsonResponse({
+            "fee": fee,
+            "currency": "GHS",
+            "distance_km": meta["distance_km"],
+            "zone": zone_name,
+            "eta_mins": meta["eta_mins"],
+            "method": meta["method"]
+        })
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
 
@@ -266,7 +273,7 @@ def place_order(request):
     area = data.get('area', '')
     payment_method = data.get('payment_method', 'pay_in_person')
     
-    fee, zone_name = calculate_delivery_fee(lat, lng, area)
+    fee, zone_name, meta = calculate_delivery_fee(lat, lng, area)
 
     # Initial order creation
     order = Order.objects.create(
