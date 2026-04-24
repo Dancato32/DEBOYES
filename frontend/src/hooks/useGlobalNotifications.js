@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { toast } from 'react-toastify'
+import { toast } from '../utils/soundToast'
 
 export default function useGlobalNotifications() {
   const { user, isAuthenticated } = useAuth()

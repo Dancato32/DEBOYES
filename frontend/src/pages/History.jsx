@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import api from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import BottomNav from '../components/BottomNav'
-import { toast } from 'react-toastify'
+import { toast } from '../utils/soundToast'
 import { useNavigate } from 'react-router-dom'
 
 const OrderRow = ({ order, navigate, isRider }) => {

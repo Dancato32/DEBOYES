@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, Navigate } from 'react-router-dom'
-import { toast } from 'react-toastify'
+import { toast } from '../utils/soundToast'
 import { useAuth } from '../context/AuthContext'
 
 export default function Onboarding() {

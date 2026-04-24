@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { fetchAdminOrders, markOrderReady, confirmOrder, confirmPickup } from '../services/api'
 import useAdminSocket from '../hooks/useAdminSocket'
-import { toast } from 'react-toastify'
+import { toast } from '../utils/soundToast'
 
 const statusFilters = ['All', 'New', 'Pending', 'Assigned', 'Ready', 'On The Way', 'Delivered']
 

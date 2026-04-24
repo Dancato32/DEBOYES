@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { fetchRiderStats, toggleAvailability, fetchAvailableBatches } from '../services/api'
-import { toast } from 'react-toastify'
+import { toast } from '../utils/soundToast'
 import { Link } from 'react-router-dom'
 import BottomNav from '../components/BottomNav'
 import { useAuth } from '../context/AuthContext'

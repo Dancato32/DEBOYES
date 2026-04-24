@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { fetchOrderMessages, sendOrderMessage, markOrderMessagesRead } from '../services/api'
 import useOrderTracking from '../hooks/useOrderTracking'
-import { toast } from 'react-toastify'
+import { toast } from '../utils/soundToast'
 
 export default function ChatDialog({ orderId, orderStatus, onClose, incomingMessages: propIncomingMessages }) {
   const [messages, setMessages] = useState([])

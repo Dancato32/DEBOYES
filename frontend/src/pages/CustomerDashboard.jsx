@@ -9,7 +9,7 @@ import CategoryChips from '../components/CategoryChips'
 import BottomNav from '../components/BottomNav'
 import FoodDetailModal from '../components/FoodDetailModal'
 import useAdminSocket from '../hooks/useAdminSocket'
-import { toast } from 'react-toastify'
+import { toast } from '../utils/soundToast'
 
 export default function CustomerDashboard() {
   const navigate = useNavigate()

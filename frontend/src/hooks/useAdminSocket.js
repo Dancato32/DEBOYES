@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { toast } from 'react-toastify'
+import { toast } from '../utils/soundToast'
 
 export default function useAdminSocket(onUpdate) {
   const socketRef = useRef(null)

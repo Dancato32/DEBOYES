@@ -109,7 +109,7 @@ export default function LocationRequest() {
                 <p className="text-[13px] font-medium text-slate-400 leading-relaxed max-w-[280px] mx-auto">
                   {status === 'denied'
                     ? 'Location access was denied. You can manually enter your address at checkout.'
-                    : 'We'll use your location to auto-fill your delivery address and give you an accurate fee estimate instantly.'}
+                    : "We\u0027ll use your location to auto-fill your delivery address and give you an accurate fee estimate instantly."}
                 </p>
               </div>
 

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { fetchAdminStats, fetchAdminOrders, fetchAdminRiders } from '../services/api'
 import useAdminSocket from '../hooks/useAdminSocket'
-import { toast } from 'react-toastify'
+import { toast } from '../utils/soundToast'
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({ 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { fetchAvailableBatches } from '../services/api'
 import { Link } from 'react-router-dom'
-import { toast } from 'react-toastify'
+import { toast } from '../utils/soundToast'
 import BottomNav from '../components/BottomNav'
 import useRiderSocket from '../hooks/useRiderSocket'
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { fetchBatchDetails, acceptBatch } from '../services/api'
-import { toast } from 'react-toastify'
+import { toast } from '../utils/soundToast'
 import BottomNav from '../components/BottomNav'
 
 export default function RiderBatchDetails() {

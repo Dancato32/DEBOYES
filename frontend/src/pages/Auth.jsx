@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { motion, AnimatePresence } from 'framer-motion'
-import { toast } from 'react-toastify'
+import { toast } from '../utils/soundToast'
 
 export default function Auth() {
   const navigate = useNavigate()

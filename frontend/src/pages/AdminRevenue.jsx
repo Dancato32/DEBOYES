@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { fetchAdminRevenue } from '../services/api'
-import { toast } from 'react-toastify'
+import { toast } from '../utils/soundToast'
 
 export default function AdminRevenue() {
   const [revenueItems, setRevenueItems] = useState([])

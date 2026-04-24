@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useCart } from '../context/CartContext'
 import { fetchAvailableRiders, placeOrder } from '../services/api'
-import { toast } from 'react-toastify'
+import { toast } from '../utils/soundToast'
 
 export default function Cart({ area }) {
   const { cartItems, total, updateQty, removeItem, clearCart } = useCart()

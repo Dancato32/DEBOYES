@@ -5,7 +5,7 @@ import useOrderTracking from '../hooks/useOrderTracking'
 import MapTracker from '../components/MapTracker'
 import BottomNav from '../components/BottomNav'
 import ChatDialog from '../components/ChatDialog'
-import { toast } from 'react-toastify'
+import { toast } from '../utils/soundToast'
 import { AnimatePresence } from 'framer-motion'
 
 

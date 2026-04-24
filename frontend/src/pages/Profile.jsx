@@ -1,7 +1,7 @@
 import { useAuth } from '../context/AuthContext'
 import BottomNav from '../components/BottomNav'
 import { Link } from 'react-router-dom'
-import { toast } from 'react-toastify'
+import { toast } from '../utils/soundToast'
 
 const ProfileRow = ({ label, value, icon, onClick, red }) => (
   <button 

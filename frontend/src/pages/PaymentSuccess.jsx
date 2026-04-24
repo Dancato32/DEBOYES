@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { verifyPayment } from '../services/api'
-import { toast } from 'react-toastify'
+import { toast } from '../utils/soundToast'
 
 export default function PaymentSuccess() {
   const navigate = useNavigate()

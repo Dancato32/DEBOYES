@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { fetchAssignedOrders, confirmBatchStop, fetchRiderStats, startBatchTrip } from '../services/api'
-import { toast } from 'react-toastify'
+import { toast } from '../utils/soundToast'
 import { useNavigate } from 'react-router-dom'
 import BottomNav from '../components/BottomNav'
 import MapTracker from '../components/MapTracker'

@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { fetchAdminMenu, manageAdminMenu, deleteMenuItem } from '../services/api'
 import useAdminSocket from '../hooks/useAdminSocket'
-import { toast } from 'react-toastify'
+import { toast } from '../utils/soundToast'
 
 export default function AdminMenu() {
   const [menu, setMenu] = useState([])

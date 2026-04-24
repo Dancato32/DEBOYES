@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authSignupPassword, authPasswordLogin, googleLogin, authLogout, getCurrentUser } from '../services/api'
-import { toast } from 'react-toastify'
+import { toast } from '../utils/soundToast'
 
 const AuthContext = createContext(null)
 

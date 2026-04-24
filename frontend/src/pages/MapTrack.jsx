@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { fetchOrderDetails } from '../services/api'
 import useOrderTracking from '../hooks/useOrderTracking'
 import MapTracker from '../components/MapTracker'
-import { toast } from 'react-toastify'
+import { toast } from '../utils/soundToast'
 
 export default function MapTrack() {
   const { orderId } = useParams()

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { fetchAdminCustomers } from '../services/api'
-import { toast } from 'react-toastify'
+import { toast } from '../utils/soundToast'
 
 export default function AdminCustomersPage() {
   const [customers, setCustomers] = useState([])

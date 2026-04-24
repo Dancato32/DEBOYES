@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { placeOrder, estimateFee } from '../services/api'
-import { toast } from 'react-toastify'
+import { toast } from '../utils/soundToast'
 import L from 'leaflet'
 
 export default function Checkout() {
