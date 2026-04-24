@@ -11,6 +11,7 @@ export default function AdminOrdersPage() {
     return localStorage.getItem('adminOrderFilter') || 'All'
   })
   const [loading, setLoading] = useState(true)
+  const [notificationSound] = useState(new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'))
 
   const loadOrders = async () => {
     setLoading(true)
@@ -25,7 +26,10 @@ export default function AdminOrdersPage() {
   }
 
   useAdminSocket((update) => {
-    if (update.event === 'ORDER_PLACED' || update.event === 'ORDER_STATUS_UPDATED') {
+    if (update.event === 'ORDER_PLACED') {
+      notificationSound.play().catch(e => console.log('Audio playback blocked by browser'))
+      loadOrders()
+    } else if (update.event === 'ORDER_STATUS_UPDATED') {
       loadOrders()
     }
   })

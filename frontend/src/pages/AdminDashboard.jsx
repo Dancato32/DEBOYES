@@ -19,6 +19,7 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState([])
   const [riders, setRiders] = useState([])
   const [loading, setLoading] = useState(true)
+  const [notificationSound] = useState(new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'))
 
   const loadData = async () => {
     setLoading(true)
@@ -39,6 +40,9 @@ export default function AdminDashboard() {
   }
 
   useAdminSocket((update) => {
+    if (update.event === 'ORDER_PLACED') {
+      notificationSound.play().catch(e => console.log('Audio playback blocked by browser'))
+    }
     loadData()
   })
 
