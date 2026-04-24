@@ -84,10 +84,14 @@ export default function TrackOrder() {
       {/* FULL BLEED MAP BACKGROUND */}
       <div className="absolute inset-0 z-0">
         <MapTracker
-          position={position}
+          position={order?.status === 'on_the_way' 
+            ? (position || { lat: order?.restaurant_lat, lng: order?.restaurant_lng })
+            : { lat: order?.restaurant_lat, lng: order?.restaurant_lng }
+          }
           destination={{ lat: order?.lat, lng: order?.lng }}
           restaurant={{ lat: order?.restaurant_lat, lng: order?.restaurant_lng }}
           darkMode={false}
+          isRiderMoving={order?.status === 'on_the_way'}
         />
       </div>
 

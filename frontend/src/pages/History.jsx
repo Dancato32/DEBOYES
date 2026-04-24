@@ -5,7 +5,7 @@ import BottomNav from '../components/BottomNav'
 import { toast } from 'react-toastify'
 import { useNavigate } from 'react-router-dom'
 
-const OrderCard = ({ order, navigate, isRider }) => {
+const OrderRow = ({ order, navigate, isRider }) => {
   const isActive = !['Delivered', 'Cancelled'].includes(order.status)
   
   return (
@@ -15,41 +15,35 @@ const OrderCard = ({ order, navigate, isRider }) => {
           navigate(`/track/${order.id}`)
         }
       }}
-      className="group flex items-center justify-between py-5 px-6 hover:bg-slate-50 transition-all cursor-pointer"
+      className="group flex items-center justify-between py-4 px-2 hover:bg-slate-50 transition-all cursor-pointer border-b border-slate-100 last:border-0"
     >
       <div className="flex items-center gap-4 min-w-0">
-        <div className={`h-10 w-10 flex items-center justify-center rounded-lg border text-sm font-black transition-colors ${
+        <div className={`h-12 w-12 flex flex-col items-center justify-center rounded border text-[10px] font-black transition-colors ${
           isActive ? 'bg-brand-red border-brand-red text-white' : 'bg-slate-50 border-slate-200 text-slate-400'
         }`}>
-          #{order.id.toString().slice(-2)}
+          <span className="opacity-50">ORD</span>
+          <span>{order.id.toString().slice(-2)}</span>
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-bold text-slate-900 font-inter truncate">
+            <h3 className="text-xs font-bold text-slate-900 font-inter truncate">
               {order.items.length} {order.items.length === 1 ? 'Item' : 'Items'}
             </h3>
-            <span className={`text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border ${
-              order.status === 'Delivered' 
-              ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
-              : isActive 
-              ? 'bg-amber-50 text-amber-600 border-amber-100'
-              : 'bg-slate-50 text-slate-400 border-slate-200'
-            }`}>
-              {order.status}
-            </span>
+            {isActive && (
+              <span className="flex h-1.5 w-1.5 rounded-full bg-brand-red animate-pulse" />
+            )}
           </div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{order.date}</p>
+          <p className="text-[10px] font-medium text-slate-400 mt-0.5 font-inter uppercase tracking-widest">{order.date}</p>
         </div>
       </div>
 
-
       <div className="flex items-center gap-6">
-        <div className="text-right hidden sm:block">
+        <div className="text-right">
            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Amount</p>
-           <p className="text-sm font-black text-slate-900">₵{order.total}</p>
+           <p className="text-sm font-black text-slate-900 font-inter">₵{order.total}</p>
         </div>
         <div className="text-slate-300 group-hover:text-brand-red transition-colors">
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
         </div>
@@ -80,54 +74,60 @@ export default function History() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-32 relative overflow-hidden">
-      {/* Background Watermark */}
-      <div className="fixed top-20 -right-20 opacity-[0.03] pointer-events-none rotate-12">
-        <img src="/logo.png" alt="" className="h-[600px] w-[600px] object-contain" />
-      </div>
-
-      <header className="bg-brand-red px-6 py-5 flex items-center justify-between sticky top-0 z-[100] shadow-lg overflow-hidden">
+    <div className="min-h-screen bg-white pb-32 relative overflow-hidden font-inter">
+      {/* SaaS Style Header */}
+      <header className="bg-brand-red px-6 py-10 relative overflow-hidden shadow-xl">
         {/* Background Logo Watermark */}
-        <div className="absolute right-[-10px] top-[-10px] opacity-[0.1] pointer-events-none">
-          <img src="/logo.png" alt="" className="h-32 w-32 object-contain brightness-0 invert" />
+        <div className="absolute right-[-10px] top-[-10px] opacity-[0.1] pointer-events-none rotate-12">
+          <img src="/logo.png" alt="" className="h-48 w-48 object-contain brightness-0 invert" />
         </div>
 
-        <div className="max-w-7xl mx-auto w-full flex items-center justify-between relative z-10">
+        <div className="max-w-7xl mx-auto relative z-10 flex flex-col gap-4">
           <div className="flex items-center gap-3">
-             <img src="/logo.png" alt="Logo" className="h-6 w-6 object-contain brightness-0 invert" />
-             <h1 className="text-sm font-bold font-inter text-brand-yellow uppercase tracking-widest">{isRider ? 'Trip History' : 'My Orders'}</h1>
+             <div className="h-8 w-8 bg-white/20 rounded flex items-center justify-center backdrop-blur-md">
+                <img src="/logo.png" alt="Logo" className="h-5 w-5 object-contain brightness-0 invert" />
+             </div>
+             <h1 className="text-xs font-black text-white/50 uppercase tracking-[0.3em]">Transaction Portal</h1>
           </div>
-          <button className="h-10 w-10 flex items-center justify-center text-white/70 rounded-lg border border-white/20 hover:bg-white/10 transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-            </svg>
-          </button>
+          <h2 className="text-4xl font-black text-brand-yellow tracking-tighter italic uppercase">{isRider ? 'Trip History' : 'My Orders'}</h2>
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-6 pt-8">
+      <div className="mx-auto max-w-7xl px-6 pt-10">
         {loading ? (
           <div className="space-y-4">
             {[1,2,3].map(i => (
-              <div key={i} className="h-20 rounded-lg animate-pulse bg-white border border-slate-200" />
+              <div key={i} className="h-16 rounded animate-pulse bg-slate-50" />
             ))}
           </div>
         ) : orders.length === 0 ? (
-          <div className="py-20 text-center space-y-4">
-            <div className="text-6xl opacity-20 grayscale">🧾</div>
-            <p className="text-sm font-medium text-slate-400 font-inter">No past orders found in your records.</p>
+          <div className="py-20 text-center space-y-6">
+            <div className="text-4xl">🧾</div>
+            <div className="space-y-1">
+              <p className="text-xs font-black text-slate-800 uppercase tracking-widest font-inter">No Data Found</p>
+              <p className="text-[10px] text-slate-400 font-medium font-inter">You haven't placed any orders recently.</p>
+            </div>
+            <button 
+              onClick={() => navigate('/customer')}
+              className="px-8 py-3 rounded bg-brand-red text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-brand-red/20 active:scale-95 transition-all"
+            >
+              Order Now
+            </button>
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-12">
             {/* Active Orders Section */}
             {orders.filter(o => !['Delivered', 'Cancelled'].includes(o.status)).length > 0 && (
               <div>
-                <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4 px-1 font-inter">
-                  {isRider ? 'Active Trip' : 'Active Orders'}
-                </h2>
-                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden divide-y divide-slate-100">
+                <div className="flex items-center justify-between mb-2 border-b-2 border-slate-900 pb-2">
+                  <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900 font-inter">
+                    {isRider ? 'In Progress' : 'Active Orders'}
+                  </h2>
+                  <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                </div>
+                <div className="flex flex-col">
                   {orders.filter(o => !['Delivered', 'Cancelled'].includes(o.status)).map(order => (
-                    <OrderCard key={order.id} order={order} navigate={navigate} isRider={isRider} />
+                    <OrderRow key={order.id} order={order} navigate={navigate} isRider={isRider} />
                   ))}
                 </div>
               </div>
@@ -136,12 +136,14 @@ export default function History() {
             {/* Past Orders Section */}
             {orders.filter(o => ['Delivered', 'Cancelled'].includes(o.status)).length > 0 && (
               <div>
-                <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4 px-1 font-inter">
-                  Past {isRider ? 'Trips' : 'Orders'}
-                </h2>
-                <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden divide-y divide-slate-100">
+                <div className="flex items-center justify-between mb-2 border-b border-slate-200 pb-2">
+                  <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 font-inter">
+                    Archived {isRider ? 'Trips' : 'Orders'}
+                  </h2>
+                </div>
+                <div className="flex flex-col">
                   {orders.filter(o => ['Delivered', 'Cancelled'].includes(o.status)).map(order => (
-                    <OrderCard key={order.id} order={order} navigate={navigate} isRider={isRider} />
+                    <OrderRow key={order.id} order={order} navigate={navigate} isRider={isRider} />
                   ))}
                 </div>
               </div>

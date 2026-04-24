@@ -32,11 +32,11 @@ const createCustomIcon = (iconName, bgColor = '#526DFF') => L.divIcon({
   iconAnchor: [18, 18],
 })
 
-const userIcon = createCustomIcon('👤')
-const riderIcon = createCustomIcon('🚗')
-const restaurantIcon = createCustomIcon('🍴')
+const userIcon = createCustomIcon('📍', '#ed1c24') // Brand Red for user
+const riderIcon = createCustomIcon('🛵', '#ffcb05') // Brand Yellow for rider
+const restaurantIcon = createCustomIcon('🏪', '#1A0A0B') // Deep Dark for restaurant
 
-export default function MapTracker({ position, destination, restaurant, darkMode = false }) {
+export default function MapTracker({ position, destination, restaurant, isRiderMoving, darkMode = false }) {
   const mapRef = useRef(null)
   const mapInstanceRef = useRef(null)
   const markerRef = useRef(null)
@@ -131,8 +131,12 @@ export default function MapTracker({ position, destination, restaurant, darkMode
     })
     new L.Control.Center({ position: 'bottomright' }).addTo(map)
 
-    // Rider marker
-    const marker = L.marker(center, { icon: riderIcon, zIndexOffset: 1000 }).addTo(map)
+    // Rider marker (only if moving)
+    const marker = L.marker(center, { 
+      icon: riderIcon, 
+      zIndexOffset: 1000,
+      opacity: isRiderMoving ? 1 : 0 
+    }).addTo(map)
     markerRef.current = marker
 
     // Destination (Customer) marker
@@ -166,7 +170,10 @@ export default function MapTracker({ position, destination, restaurant, darkMode
   useEffect(() => {
     if (!markerRef.current || !position?.lat || !position?.lng) return
     const newPos = [position.lat, position.lng]
+    
     markerRef.current.setLatLng(newPos)
+    markerRef.current.setOpacity(isRiderMoving ? 1 : 0)
+
     if (destination?.lat) {
        updateRoute(position, destination, mapInstanceRef.current)
     }
